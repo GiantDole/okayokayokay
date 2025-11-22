@@ -17,12 +17,12 @@ export function MobileHeader() {
 
   return (
     <>
-      <header className="md:hidden bg-white border-b shadow-sm sticky top-0 z-40">
+      <header className="md:hidden bg-default border-b border-contrast shadow-sm sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <Link
               href="/"
-              className="text-gray-900 font-bold text-xl hover:text-gray-700 transition-colors"
+              className="text-primary font-bold text-xl hover:text-highlight transition-colors"
             >
               okayokayokay
             </Link>
@@ -30,7 +30,7 @@ export function MobileHeader() {
               <WalletBadge />
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="p-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
+                className="p-2 rounded-lg text-primary hover:bg-contrast transition-colors"
                 aria-label="Toggle menu"
               >
                 {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -53,22 +53,22 @@ export function MobileHeader() {
         />
         {/* Overlay Menu */}
         <div
-          className={`absolute inset-y-0 right-0 w-full bg-white flex flex-col transition-transform duration-300 ease-out ${
+          className={`absolute inset-y-0 right-0 w-full bg-default flex flex-col transition-transform duration-300 ease-out ${
             isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
           }`}
         >
           {/* Close Button */}
-          <div className="flex justify-between items-center p-4 border-b">
+          <div className="flex justify-between items-center p-4 border-b border-contrast">
             <Link
               href="/"
               onClick={() => setIsMobileMenuOpen(false)}
-              className="text-gray-900 font-bold text-xl"
+              className="text-primary font-bold text-xl"
             >
               okayokayokay
             </Link>
             <button
               onClick={() => setIsMobileMenuOpen(false)}
-              className="p-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
+              className="p-2 rounded-lg text-primary hover:bg-contrast transition-colors"
               aria-label="Close menu"
             >
               <X size={24} />
@@ -86,8 +86,8 @@ export function MobileHeader() {
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={`px-4 py-3 text-sm font-medium rounded-md transition-colors flex items-center gap-2 ${
                     isActive
-                      ? "bg-gray-100 text-gray-900"
-                      : "text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                      ? "bg-contrast text-primary"
+                      : "text-primary hover:text-highlight hover:bg-contrast"
                   }`}
                 >
                   <Icon size={20} />
@@ -97,7 +97,7 @@ export function MobileHeader() {
             })}
           </nav>
           {/* Wallet Badge in Mobile Menu */}
-          <div className="p-4 border-t">
+          <div className="p-4 border-t border-contrast">
             <WalletBadge />
           </div>
         </div>
@@ -110,12 +110,12 @@ export function DesktopSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden md:flex w-64 bg-white border-r shadow-sm sticky top-0 h-screen flex-col overflow-hidden">
+    <aside className="hidden md:flex w-64 bg-default border-r border-contrast shadow-sm sticky top-0 h-screen flex-col overflow-hidden">
       {/* Logo */}
-      <div className="p-6 border-b flex-shrink-0">
+      <div className="p-6 border-b border-contrast flex-shrink-0">
         <Link
           href="/"
-          className="text-gray-900 font-bold text-xl hover:text-gray-700 transition-colors"
+          className="text-primary font-bold text-xl hover:text-highlight transition-colors"
         >
           okayokayokay
         </Link>
@@ -132,8 +132,8 @@ export function DesktopSidebar() {
               href={link.href}
               className={`px-4 py-3 text-sm font-medium rounded-md transition-colors flex items-center gap-2 ${
                 isActive
-                  ? "bg-gray-100 text-gray-900"
-                  : "text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  ? "bg-contrast text-primary"
+                  : "text-primary hover:text-primary hover:bg-contrast"
               }`}
             >
               <Icon size={20} />
@@ -144,7 +144,7 @@ export function DesktopSidebar() {
       </nav>
 
       {/* Wallet Badge */}
-      <div className="p-4 border-t flex-shrink-0">
+      <div className="p-4 border-t border-contrast flex-shrink-0">
         <WalletBadge />
       </div>
     </aside>

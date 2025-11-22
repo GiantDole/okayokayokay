@@ -60,8 +60,8 @@ export function WalletBadge() {
   // Prevent hydration mismatch by not rendering until mounted
   if (!mounted || loading) {
     return (
-      <div className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-lg">
-        <div className="h-4 w-20 bg-gray-300 rounded"></div>
+      <div className="flex items-center gap-2 px-3 py-2 bg-contrast rounded-lg">
+        <div className="h-4 w-20 bg-default rounded"></div>
       </div>
     );
   }
@@ -70,7 +70,7 @@ export function WalletBadge() {
     return (
       <Link
         href="/wallet"
-        className="flex items-center gap-2 px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition text-sm"
+        className="flex items-center gap-2 px-3 py-2 bg-error/20 text-error rounded-lg hover:bg-error/30 transition text-sm"
       >
         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
           <path
@@ -90,11 +90,11 @@ export function WalletBadge() {
   return (
     <Link
       href="/wallet"
-      className="flex items-center gap-3 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition"
+      className="flex items-center gap-3 px-3 py-2 bg-contrast hover:bg-default rounded-lg transition"
     >
       {/* Wallet Icon */}
       <svg
-        className="w-5 h-5 text-gray-600"
+        className="w-5 h-5 text-primary"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -109,12 +109,12 @@ export function WalletBadge() {
 
       {/* Address & Balance */}
       <div className="flex flex-col">
-        <span className="text-xs font-mono text-gray-600">
+        <span className="text-xs font-mono text-primary/70">
           {truncateAddress(walletInfo.walletAddress)}
         </span>
         <span
           className={`text-xs font-semibold ${
-            hasBalance ? "text-green-600" : "text-gray-500"
+            hasBalance ? "text-success" : "text-primary/50"
           }`}
         >
           ${walletInfo.usdcBalance} USDC
@@ -124,7 +124,7 @@ export function WalletBadge() {
       {/* Status Indicator */}
       <div
         className={`w-2 h-2 rounded-full ${
-          hasBalance ? "bg-green-500" : "bg-gray-400"
+          hasBalance ? "bg-success" : "bg-primary/30"
         }`}
       ></div>
     </Link>
