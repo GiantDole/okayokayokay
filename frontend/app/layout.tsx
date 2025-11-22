@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import Sidebar from "../components/Sidebar";
 
 export const metadata: Metadata = {
   title: "402 dispute resolution",
@@ -13,7 +14,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="bg-gray-800">{children}</body>
+      <body className="bg-gray-800">
+        <div className="max-w-7xl mx-auto w-full">
+          <div className="flex">
+            <Sidebar />
+            <main className="flex-1">{children}</main>
+          </div>
+        </div>
+      </body>
     </html>
   );
 }
