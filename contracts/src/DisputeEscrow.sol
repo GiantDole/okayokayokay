@@ -133,8 +133,17 @@ contract DisputeEscrow {
      */
     function releaseEscrow(bytes32 requestId) external {
         ServiceRequest storage req = requests[requestId];
-        require(req.status == RequestStatus.Escrowed, "Not in escrow");
-        require(block.timestamp >= req.nextDeadline, "Still in dispute window");
+
+        // Can release if:
+        // 1. Status is Escrowed and dispute deadline passed
+        // 2. Status is DisputeOpened, seller rejected, and escalation deadline passed
+        if (req.status == RequestStatus.Escrowed) {
+            require(block.timestamp >= req.nextDeadline, "Still in dispute window");
+        } else if (req.status == RequestStatus.DisputeOpened && req.sellerRejected) {
+            require(block.timestamp >= req.nextDeadline, "Still in escalation window");
+        } else {
+            revert("Cannot release funds");
+        }
 
         allocatedBalance -= req.amount;
         req.status = RequestStatus.EscrowReleased;
