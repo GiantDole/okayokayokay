@@ -22,13 +22,12 @@ contract DisputeEscrow {
           // address seller; seller is known as this contract is specific to the seller
           uint256 amount;
           uint256 escrowedAt;      // Timestamp when escrowed
-          uint256 disputeDeadline;  // Timestamp for dispute filing
-          uint256 disputeOpenedAt;  // Timestamp when dispute opened
-          uint256 sellerResponseDeadline; // Deadline for seller to respond to dispute
+          uint256 nextDeadline;     // Next action deadline (changes meaning based on status)
           RequestStatus status;
           bytes32 apiResponseHash;  // Set by operator
           address disputeAgent;      // Assigned if escalated
           bool buyerRefunded;
+          bool sellerRejected;      // Whether seller rejected the refund request
     }
 
     // Immutable state
@@ -46,11 +45,13 @@ contract DisputeEscrow {
 
     uint256 public escrowPeriod = 30 minutes;
     uint256 public disputePeriod = 10 minutes;
+    uint256 public constant BUYER_ESCALATION_PERIOD = 2 days;
 
     // Events
     event EscrowConfirmed(bytes32 indexed requestId, bytes32 apiResponseHash);
     event EscrowReleased(bytes32 indexed requestId, uint256 amount);
     event DisputeOpened(bytes32 indexed requestId, address indexed buyer);
+    event DisputeResponded(bytes32 indexed requestId, bool accepted);
 
     // Modifiers
     modifier onlyOperator() {
@@ -113,13 +114,12 @@ contract DisputeEscrow {
             buyer: buyer,
             amount: amount,
             escrowedAt: block.timestamp,
-            disputeDeadline: block.timestamp + escrowPeriod,
-            disputeOpenedAt: 0,
-            sellerResponseDeadline: 0,
+            nextDeadline: block.timestamp + escrowPeriod,  // Deadline for buyer to dispute
             status: RequestStatus.Escrowed,
             apiResponseHash: apiResponseHash,
             disputeAgent: address(0),
-            buyerRefunded: false
+            buyerRefunded: false,
+            sellerRejected: false
         });
 
         emit EscrowConfirmed(requestId, apiResponseHash);
@@ -132,7 +132,7 @@ contract DisputeEscrow {
     function releaseEscrow(bytes32 requestId) external {
         ServiceRequest storage req = requests[requestId];
         require(req.status == RequestStatus.Escrowed, "Not in escrow");
-        require(block.timestamp >= req.disputeDeadline, "Still in dispute window");
+        require(block.timestamp >= req.nextDeadline, "Still in dispute window");
 
         allocatedBalance -= req.amount;
         req.status = RequestStatus.EscrowReleased;
@@ -151,14 +151,45 @@ contract DisputeEscrow {
         ServiceRequest storage req = requests[requestId];
         require(msg.sender == req.buyer, "Not buyer");
         require(req.status == RequestStatus.Escrowed, "Not in escrow");
-        require(block.timestamp < req.disputeDeadline, "Dispute window closed");
+        require(block.timestamp < req.nextDeadline, "Dispute window closed");
 
         req.status = RequestStatus.DisputeOpened;
-        req.disputeOpenedAt = block.timestamp;
-        req.sellerResponseDeadline = block.timestamp + disputePeriod;
+        req.nextDeadline = block.timestamp + disputePeriod;  // Now deadline for seller to respond
 
         emit DisputeOpened(requestId, req.buyer);
     }
+
+    /**
+     * @dev Service provider responds to dispute
+     * @param requestId Unique identifier for the request
+     * @param acceptRefund Whether to accept the refund request
+     */
+    function respondToDispute(bytes32 requestId, bool acceptRefund) external onlyServiceProvider {
+        ServiceRequest storage req = requests[requestId];
+        require(req.status == RequestStatus.DisputeOpened, "No dispute opened");
+        require(block.timestamp <= req.nextDeadline, "Response period expired");
+        require(!req.sellerRejected, "Already responded");
+
+        if (acceptRefund) {
+            req.status = RequestStatus.SellerAccepted;
+            req.buyerRefunded = true;
+
+            // Decrease allocated balance as funds are being refunded
+            allocatedBalance -= req.amount;
+
+            // Transfer refund to buyer
+            IERC20(usdc).transfer(req.buyer, req.amount);
+        } else {
+            // Seller rejected - buyer has 2 days to escalate
+            req.sellerRejected = true;
+            req.nextDeadline = block.timestamp + BUYER_ESCALATION_PERIOD;  // Now deadline for buyer to escalate
+            // Status remains DisputeOpened so buyer can still escalate
+        }
+
+        emit DisputeResponded(requestId, acceptRefund);
+    }
+
+
 
     // ============ View Functions ============
 
@@ -188,6 +219,7 @@ contract DisputeEscrow {
     function canSellerRespond(bytes32 requestId) external view returns (bool) {
         ServiceRequest memory req = requests[requestId];
         return req.status == RequestStatus.DisputeOpened &&
-               block.timestamp <= req.sellerResponseDeadline;
+               !req.sellerRejected &&
+               block.timestamp <= req.nextDeadline;
     }
 }
