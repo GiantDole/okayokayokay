@@ -52,6 +52,8 @@ contract DisputeEscrow {
     event EscrowReleased(bytes32 indexed requestId, uint256 amount);
     event DisputeOpened(bytes32 indexed requestId, address indexed buyer);
     event DisputeResponded(bytes32 indexed requestId, bool accepted);
+    event DisputeEscalated(bytes32 indexed requestId);
+    event DisputeResolved(bytes32 indexed requestId, bool buyerRefunded, address indexed disputeAgent);
 
     // Modifiers
     modifier onlyOperator() {
@@ -189,7 +191,57 @@ contract DisputeEscrow {
         emit DisputeResponded(requestId, acceptRefund);
     }
 
+    /**
+     * @dev Buyer escalates dispute after seller rejection or timeout
+     * @param requestId Unique identifier for the request
+     */
+    function escalateDispute(bytes32 requestId) external {
+        ServiceRequest storage req = requests[requestId];
+        require(msg.sender == req.buyer, "Not buyer");
+        require(req.status == RequestStatus.DisputeOpened, "Invalid dispute status");
 
+        // Can escalate if:
+        // 1. Seller didn't respond in time (deadline passed and not rejected)
+        // 2. Seller rejected and buyer is within escalation deadline
+        if (!req.sellerRejected) {
+            // Seller didn't respond - check if response deadline passed
+            require(block.timestamp > req.nextDeadline, "Seller response period still active");
+        } else {
+            // Seller rejected - check if buyer is within escalation deadline
+            require(block.timestamp <= req.nextDeadline, "Escalation period expired");
+        }
+
+        req.status = RequestStatus.DisputeEscalated;
+        // No new deadline needed - agent resolves at their discretion
+
+        emit DisputeEscalated(requestId);
+    }
+
+    /**
+     * @dev Dispute agent resolves the escalated dispute
+     * @param requestId Unique identifier for the request
+     * @param refundBuyer Whether to refund the buyer
+     */
+    function resolveDispute(bytes32 requestId, bool refundBuyer) external onlyDisputeAgent {
+        ServiceRequest storage req = requests[requestId];
+        require(req.status == RequestStatus.DisputeEscalated, "Not escalated");
+
+        req.status = RequestStatus.DisputeResolved;
+        req.disputeAgent = msg.sender;
+
+        // Decrease allocated balance as funds are being distributed
+        allocatedBalance -= req.amount;
+
+        if (refundBuyer) {
+            req.buyerRefunded = true;
+            IERC20(usdc).transfer(req.buyer, req.amount);
+        } else {
+            // Funds go to service provider
+            IERC20(usdc).transfer(serviceProvider, req.amount);
+        }
+
+        emit DisputeResolved(requestId, refundBuyer, msg.sender);
+    }
 
     // ============ View Functions ============
 
