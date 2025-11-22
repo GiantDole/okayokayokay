@@ -574,6 +574,271 @@ contract DisputeEscrowTest is Test {
         assertEq(usdc.balanceOf(serviceProvider), sellerBalanceBefore + ESCROW_AMOUNT);
     }
 
+    // ============ Extended Edge Case Tests ============
+
+    // Test seller can withdraw when dispute times out without seller response and buyer doesn't escalate
+    function testSellerWithdrawAfterDisputeTimeoutNoEscalation() public {
+        // Setup escrow and open dispute
+        _setupDisputedEscrow();
+
+        // Fast forward past seller response deadline AND buyer escalation period
+        vm.warp(block.timestamp + escrow.disputePeriod() + 2 days + 1);
+
+        // Now seller should be able to withdraw
+        uint256 sellerBalanceBefore = usdc.balanceOf(serviceProvider);
+        escrow.releaseEscrow(REQUEST_ID_1);
+        assertEq(usdc.balanceOf(serviceProvider), sellerBalanceBefore + ESCROW_AMOUNT);
+    }
+
+    // Test early release by buyer (before dispute window)
+    function testEarlyReleaseByBuyer() public {
+        // Setup escrow
+        vm.prank(facilitator);
+        usdc.transfer(address(escrow), ESCROW_AMOUNT);
+
+        vm.prank(operator);
+        escrow.confirmEscrow(REQUEST_ID_1, buyer1, ESCROW_AMOUNT, API_RESPONSE_HASH);
+
+        // Buyer validates service immediately using earlyRelease
+        uint256 sellerBalanceBefore = usdc.balanceOf(serviceProvider);
+        vm.prank(buyer1);
+        escrow.earlyRelease(REQUEST_ID_1);
+
+        // Verify funds transferred to seller
+        assertEq(usdc.balanceOf(serviceProvider), sellerBalanceBefore + ESCROW_AMOUNT);
+        assertEq(escrow.allocatedBalance(), 0);
+    }
+
+    // Test exact deadline boundary conditions
+    function testExactDeadlineBoundaries() public {
+        // Setup escrow
+        vm.prank(facilitator);
+        usdc.transfer(address(escrow), ESCROW_AMOUNT);
+
+        vm.prank(operator);
+        uint256 confirmTime = block.timestamp;
+        escrow.confirmEscrow(REQUEST_ID_1, buyer1, ESCROW_AMOUNT, API_RESPONSE_HASH);
+
+        // Test at exact dispute deadline
+        vm.warp(confirmTime + escrow.escrowPeriod());
+
+        // Should be able to release at exact deadline
+        escrow.releaseEscrow(REQUEST_ID_1);
+    }
+
+    // Test dispute opened at last second
+    function testDisputeOpenedAtLastSecond() public {
+        // Setup escrow
+        vm.prank(facilitator);
+        usdc.transfer(address(escrow), ESCROW_AMOUNT);
+
+        vm.prank(operator);
+        uint256 confirmTime = block.timestamp;
+        escrow.confirmEscrow(REQUEST_ID_1, buyer1, ESCROW_AMOUNT, API_RESPONSE_HASH);
+
+        // Fast forward to 1 second before deadline
+        vm.warp(confirmTime + escrow.escrowPeriod() - 1);
+
+        // Should still be able to open dispute
+        vm.prank(buyer1);
+        escrow.openDispute(REQUEST_ID_1);
+
+        // Check status
+        (,,,, DisputeEscrow.RequestStatus status,,,,) = escrow.requests(REQUEST_ID_1);
+        assertEq(uint(status), uint(DisputeEscrow.RequestStatus.DisputeOpened));
+    }
+
+    // Test multiple status transitions on same request
+    function testComplexDisputeFlow() public {
+        // Setup escrow
+        vm.prank(facilitator);
+        usdc.transfer(address(escrow), ESCROW_AMOUNT);
+
+        vm.prank(operator);
+        escrow.confirmEscrow(REQUEST_ID_1, buyer1, ESCROW_AMOUNT, API_RESPONSE_HASH);
+
+        // Open dispute
+        vm.prank(buyer1);
+        escrow.openDispute(REQUEST_ID_1);
+
+        // Seller rejects
+        vm.prank(serviceProvider);
+        escrow.respondToDispute(REQUEST_ID_1, false);
+
+        // Buyer escalates
+        vm.prank(buyer1);
+        escrow.escalateDispute(REQUEST_ID_1);
+
+        // Agent resolves in favor of buyer
+        vm.prank(disputeAgent);
+        escrow.resolveDispute(REQUEST_ID_1, true);
+
+        // Verify final state
+        (,,,, DisputeEscrow.RequestStatus status,,, bool buyerRefunded,) = escrow.requests(REQUEST_ID_1);
+        assertEq(uint(status), uint(DisputeEscrow.RequestStatus.DisputeResolved));
+        assertTrue(buyerRefunded);
+    }
+
+    // Test that funds remain locked during dispute
+    function testFundsLockedDuringDispute() public {
+        // Setup multiple requests
+        vm.prank(facilitator);
+        usdc.transfer(address(escrow), ESCROW_AMOUNT * 3);
+
+        // Create first request
+        vm.prank(operator);
+        escrow.confirmEscrow(REQUEST_ID_1, buyer1, ESCROW_AMOUNT, API_RESPONSE_HASH);
+
+        // Create second request
+        vm.prank(operator);
+        escrow.confirmEscrow(REQUEST_ID_2, buyer2, ESCROW_AMOUNT, API_RESPONSE_HASH);
+
+        // Open dispute on first request
+        vm.prank(buyer1);
+        escrow.openDispute(REQUEST_ID_1);
+
+        // Check balances
+        assertEq(escrow.allocatedBalance(), ESCROW_AMOUNT * 2);
+        assertEq(escrow.getUnallocatedBalance(), ESCROW_AMOUNT);
+
+        // Can still create new request with unallocated funds
+        bytes32 requestId3 = keccak256("request3");
+        vm.prank(operator);
+        escrow.confirmEscrow(requestId3, buyer1, ESCROW_AMOUNT, API_RESPONSE_HASH);
+
+        assertEq(escrow.allocatedBalance(), ESCROW_AMOUNT * 3);
+        assertEq(escrow.getUnallocatedBalance(), 0);
+    }
+
+    // Test view functions consistency
+    function testViewFunctionsConsistency() public {
+        // Setup escrow
+        vm.prank(facilitator);
+        usdc.transfer(address(escrow), ESCROW_AMOUNT);
+
+        vm.prank(operator);
+        escrow.confirmEscrow(REQUEST_ID_1, buyer1, ESCROW_AMOUNT, API_RESPONSE_HASH);
+
+        // Check initial status
+        assertEq(uint(escrow.getRequestStatus(REQUEST_ID_1)), uint(DisputeEscrow.RequestStatus.Escrowed));
+
+        // Open dispute
+        vm.prank(buyer1);
+        escrow.openDispute(REQUEST_ID_1);
+
+        // Check canSellerRespond
+        assertTrue(escrow.canSellerRespond(REQUEST_ID_1));
+
+        // Seller responds with rejection
+        vm.prank(serviceProvider);
+        escrow.respondToDispute(REQUEST_ID_1, false);
+
+        // Check canSellerRespond is now false
+        assertFalse(escrow.canSellerRespond(REQUEST_ID_1));
+    }
+
+    // Test overflow/underflow protection
+    function testOverflowProtection() public {
+        // Try to allocate more than available
+        vm.prank(facilitator);
+        usdc.transfer(address(escrow), ESCROW_AMOUNT);
+
+        // This should not cause underflow
+        vm.prank(operator);
+        vm.expectRevert("Insufficient unallocated funds");
+        escrow.confirmEscrow(REQUEST_ID_1, buyer1, ESCROW_AMOUNT + 1, API_RESPONSE_HASH);
+    }
+
+    // Test seller trying to withdraw during active dispute (before seller responds)
+    function testSellerCannotWithdrawDuringActiveDispute() public {
+        // Setup and open dispute
+        _setupDisputedEscrow();
+
+        // Seller should not be able to withdraw while dispute is active
+        // The error message should be "Buyer can still escalate" because seller hasn't responded yet
+        vm.expectRevert("Buyer can still escalate");
+        escrow.releaseEscrow(REQUEST_ID_1);
+    }
+
+    // Test seller trying to withdraw during dispute after rejection but within escalation window
+    function testSellerCannotWithdrawDuringEscalationWindow() public {
+        // Setup and open dispute
+        _setupDisputedEscrow();
+
+        // Seller rejects
+        vm.prank(serviceProvider);
+        escrow.respondToDispute(REQUEST_ID_1, false);
+
+        // Still within escalation window - seller cannot withdraw
+        vm.expectRevert("Still in escalation window");
+        escrow.releaseEscrow(REQUEST_ID_1);
+    }
+
+    // Test dispute cancellation at different stages
+    function testDisputeCancellationStages() public {
+        // Setup escrow
+        vm.prank(facilitator);
+        usdc.transfer(address(escrow), ESCROW_AMOUNT * 2);
+
+        // Test 1: Cancel after opening dispute
+        vm.prank(operator);
+        escrow.confirmEscrow(REQUEST_ID_1, buyer1, ESCROW_AMOUNT, API_RESPONSE_HASH);
+
+        vm.prank(buyer1);
+        escrow.openDispute(REQUEST_ID_1);
+
+        vm.prank(buyer1);
+        escrow.cancelDispute(REQUEST_ID_1);
+
+        // Seller should be able to withdraw immediately
+        escrow.releaseEscrow(REQUEST_ID_1);
+
+        // Test 2: Cancel after escalation
+        vm.prank(operator);
+        escrow.confirmEscrow(REQUEST_ID_2, buyer1, ESCROW_AMOUNT, API_RESPONSE_HASH);
+
+        vm.prank(buyer1);
+        escrow.openDispute(REQUEST_ID_2);
+
+        vm.prank(serviceProvider);
+        escrow.respondToDispute(REQUEST_ID_2, false);
+
+        vm.prank(buyer1);
+        escrow.escalateDispute(REQUEST_ID_2);
+
+        vm.prank(buyer1);
+        escrow.cancelDispute(REQUEST_ID_2);
+
+        // Seller should be able to withdraw
+        escrow.releaseEscrow(REQUEST_ID_2);
+    }
+
+    // Test early release cannot be called by non-buyer
+    function testEarlyReleaseNotBuyer() public {
+        // Setup escrow
+        vm.prank(facilitator);
+        usdc.transfer(address(escrow), ESCROW_AMOUNT);
+
+        vm.prank(operator);
+        escrow.confirmEscrow(REQUEST_ID_1, buyer1, ESCROW_AMOUNT, API_RESPONSE_HASH);
+
+        // Non-buyer tries to early release
+        vm.prank(buyer2);
+        vm.expectRevert("Not buyer");
+        escrow.earlyRelease(REQUEST_ID_1);
+    }
+
+    // Test early release after dispute opened
+    function testEarlyReleaseAfterDisputeOpened() public {
+        // Setup and open dispute
+        _setupDisputedEscrow();
+
+        // Try to early release after dispute opened
+        vm.prank(buyer1);
+        vm.expectRevert("Not in escrow");
+        escrow.earlyRelease(REQUEST_ID_1);
+    }
+
     // ============ Helper Functions ============
 
     function _setupDisputedEscrow() internal {
