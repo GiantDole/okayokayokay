@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import Sidebar from "../components/Sidebar";
+import { MobileHeader, DesktopSidebar } from "../components/Sidebar";
 
 export const metadata: Metadata = {
   title: "402 dispute resolution",
@@ -16,8 +16,9 @@ export default function RootLayout({
     <html lang="en">
       <body className="bg-gray-800">
         <div className="max-w-7xl mx-auto w-full">
+          <MobileHeader />
           <div className="flex">
-            <Sidebar />
+            <DesktopSidebar />
             <main className="flex-1">{children}</main>
           </div>
         </div>
