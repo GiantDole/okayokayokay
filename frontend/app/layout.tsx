@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { MobileHeader, DesktopSidebar } from "../components/Sidebar";
+import { Providers } from "../components/Providers";
 
 export const metadata: Metadata = {
   title: "402 dispute resolution",
@@ -15,13 +16,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="bg-gray-800">
-        <div className="max-w-7xl mx-auto w-full">
-          <MobileHeader />
-          <div className="flex">
-            <DesktopSidebar />
-            <main className="flex-1">{children}</main>
+        <Providers>
+          <div className="max-w-7xl mx-auto w-full">
+            <MobileHeader />
+            <div className="flex">
+              <DesktopSidebar />
+              <main className="flex-1">{children}</main>
+            </div>
           </div>
-        </div>
+        </Providers>
       </body>
     </html>
   );

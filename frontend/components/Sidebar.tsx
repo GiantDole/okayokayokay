@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, Receipt, Scale, Menu, X } from "lucide-react";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 const links = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -18,7 +19,10 @@ export function MobileHeader() {
   return (
     <>
       <header className="md:hidden  border-b border-gray-700 p-4">
-        <div className="flex items-center justify-end">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex-1">
+            <ConnectButton />
+          </div>
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="p-2 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"
@@ -78,6 +82,10 @@ export function MobileHeader() {
               );
             })}
           </nav>
+          {/* Connect Button in Mobile Menu */}
+          <div className="px-6 pb-6">
+            <ConnectButton />
+          </div>
         </div>
       </div>
     </>
@@ -88,8 +96,8 @@ export function DesktopSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden md:block w-20 bg-transparent border-r border-gray-700 min-h-screen p-4">
-      <nav className="space-y-2">
+    <aside className="hidden md:flex w-20 bg-transparent border-r border-gray-700 min-h-screen p-4 flex-col">
+      <nav className="space-y-2 flex-1">
         {links.map((link) => {
           const isActive = pathname === link.href;
           const Icon = link.icon;
@@ -109,6 +117,9 @@ export function DesktopSidebar() {
           );
         })}
       </nav>
+      <div className="flex justify-center">
+        <ConnectButton />
+      </div>
     </aside>
   );
 }
