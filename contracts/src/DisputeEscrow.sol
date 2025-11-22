@@ -243,6 +243,30 @@ contract DisputeEscrow {
         emit DisputeResolved(requestId, refundBuyer, msg.sender);
     }
 
+    /**
+     * @dev Cancel an open dispute (only buyer can cancel)
+     * @param requestId Unique identifier for the request
+     */
+    function cancelDispute(bytes32 requestId) external {
+        ServiceRequest storage req = requests[requestId];
+        require(msg.sender == req.buyer, "Not buyer");
+        require(
+            req.status == RequestStatus.DisputeOpened ||
+            req.status == RequestStatus.DisputeEscalated,
+            "Invalid dispute status"
+        );
+
+        // Reset to escrowed with expired deadline so seller can immediately withdraw
+        req.status = RequestStatus.Escrowed;
+        req.nextDeadline = block.timestamp; // Expired, so funds can be released immediately
+        req.sellerRejected = false; // Reset rejection flag
+
+        // Note: allocatedBalance stays the same as funds are still allocated,
+        // just now available for the seller to withdraw
+
+        emit DisputeCancelled(requestId);
+    }
+
     // ============ View Functions ============
 
     /**
