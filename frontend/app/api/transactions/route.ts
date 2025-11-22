@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getTransactionsByBuyer, getBuyerUnresolvedTransactions } from '@/lib/queries/transactions.server';
+import {
+  getTransactionsByBuyer,
+  getBuyerUnresolvedTransactions,
+  getResourceRequestsByUser
+} from '@/lib/queries/transactions.server';
 
 export async function GET(request: NextRequest) {
   try {
@@ -13,10 +17,11 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Fetch both all transactions and unresolved transactions
-    const [transactionsResult, unresolvedResult] = await Promise.all([
+    // Fetch transactions (from dispute escrow), unresolved, and resource requests (x402 calls)
+    const [transactionsResult, unresolvedResult, resourceRequestsResult] = await Promise.all([
       getTransactionsByBuyer(address, 100),
       getBuyerUnresolvedTransactions(address, 50),
+      getResourceRequestsByUser(address, 100),
     ]);
 
     if (transactionsResult.error) {
@@ -33,9 +38,17 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    if (resourceRequestsResult.error) {
+      return NextResponse.json(
+        { error: resourceRequestsResult.error.message },
+        { status: 500 }
+      );
+    }
+
     return NextResponse.json({
       transactions: transactionsResult.data || [],
       unresolved: unresolvedResult.data || [],
+      resourceRequests: resourceRequestsResult.data || [],
     });
   } catch (error) {
     console.error('Error fetching transactions:', error);
