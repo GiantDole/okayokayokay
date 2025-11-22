@@ -55,3 +55,9 @@ Dispute resolution platform for x402 payments with multi-layer arbitration.
 ### Dashboard (Both)
 - Open dispute count
 - Transaction volumes (escrowed, disputed, refunded)
+
+## Development
+
+**Package Manager**: This project uses **yarn** for dependency management. Always use `yarn` instead of `npm`.
+
+**Documentation**: Do not create markdown files for everything. Only create documentation when explicitly requested or when absolutely necessary for critical setup/configuration.
