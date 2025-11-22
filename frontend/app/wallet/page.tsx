@@ -1,10 +1,10 @@
-import { SessionWalletInfo } from '@/components/SessionWalletInfo';
-import Link from 'next/link';
+import { SessionWalletInfo } from "@/components/SessionWalletInfo";
+import Link from "next/link";
 
 export default function WalletPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <div className="mb-6">
           <Link
             href="/"
@@ -28,9 +28,14 @@ export default function WalletPage() {
             How it works
           </h3>
           <ul className="text-sm text-blue-800 space-y-2">
-            <li>• Your wallet is automatically created and tied to this browser session</li>
+            <li>
+              • Your wallet is automatically created and tied to this browser
+              session
+            </li>
             <li>• Fund it with USDC on Base to make x402 payments</li>
-            <li>• Payments are processed automatically when you use resources</li>
+            <li>
+              • Payments are processed automatically when you use resources
+            </li>
             <li>• Balance updates every 10 seconds</li>
           </ul>
         </div>
