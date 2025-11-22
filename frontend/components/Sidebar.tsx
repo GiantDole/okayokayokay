@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, Receipt, Scale, Menu, X } from "lucide-react";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { WalletButton } from "./WalletButton";
 
 const links = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -21,7 +21,7 @@ export function MobileHeader() {
       <header className="md:hidden  border-b border-gray-700 p-4">
         <div className="flex items-center justify-between gap-4">
           <div className="flex-1">
-            <ConnectButton />
+            <WalletButton />
           </div>
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -84,7 +84,7 @@ export function MobileHeader() {
           </nav>
           {/* Connect Button in Mobile Menu */}
           <div className="px-6 pb-6">
-            <ConnectButton />
+            <WalletButton />
           </div>
         </div>
       </div>
@@ -118,7 +118,7 @@ export function DesktopSidebar() {
         })}
       </nav>
       <div className="flex justify-center">
-        <ConnectButton />
+        <WalletButton />
       </div>
     </aside>
   );
