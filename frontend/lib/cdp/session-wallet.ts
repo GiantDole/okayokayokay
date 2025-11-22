@@ -68,9 +68,13 @@ export async function getOrCreateAnonymousWallet(sessionId: string): Promise<{
   const cdpWalletName = generateCdpAccountName(sessionId);
 
   try {
+    console.log('[CDP] Attempting to create/get account:', cdpWalletName);
+
     const account = await cdpClient.evm.getOrCreateAccount({
       name: cdpWalletName,
     });
+
+    console.log('[CDP] Account created/retrieved successfully');
 
     if (!account || !account.address) {
       throw new Error('CDP account creation failed: no address returned');
@@ -100,6 +104,15 @@ export async function getOrCreateAnonymousWallet(sessionId: string): Promise<{
     };
   } catch (error) {
     console.error('[CDP] Error creating account:', error);
+    // Log more detailed error info
+    if (error instanceof Error) {
+      console.error('[CDP] Error name:', error.name);
+      console.error('[CDP] Error message:', error.message);
+      console.error('[CDP] Error stack:', error.stack);
+      if ('cause' in error) {
+        console.error('[CDP] Error cause:', error.cause);
+      }
+    }
     throw error;
   }
 }

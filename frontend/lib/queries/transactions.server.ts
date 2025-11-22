@@ -183,3 +183,31 @@ export async function updateTransactionStatus(requestId: string, status: Dispute
     })
     .eq('request_id', requestId);
 }
+
+/**
+ * Resource Requests (x402 API calls)
+ */
+
+export interface ResourceRequest {
+  request_id: string;
+  user_address: string;
+  seller_address: string;
+  tx_hash: string | null;
+  resource_url: string | null;
+  status: string;
+  input_data: any;
+  output_data: any;
+  seller_description: any;
+  error_message: string | null;
+  created_at: string;
+  completed_at: string | null;
+}
+
+export async function getResourceRequestsByUser(userAddress: string, limit = 100) {
+  return supabase
+    .from('resource_requests')
+    .select('*')
+    .eq('user_address', userAddress)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+}
