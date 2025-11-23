@@ -30,7 +30,7 @@ export default function MoneyFlowDiagram({
 
   return (
     <div className="bg-default border border-contrast rounded-lg p-6 overflow-hidden">
-      <h3 className="text-lg font-semibold text-primary mb-6">Money Flow</h3>
+      <h3 className="text-lg font-semibold text-primary mb-6">Dispute Graph</h3>
       
       <div className="relative py-4 min-h-[180px]">
         <div className="flex items-start justify-center gap-8">
