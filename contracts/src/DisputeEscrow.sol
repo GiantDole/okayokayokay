@@ -332,4 +332,22 @@ contract DisputeEscrow {
                !req.sellerRejected &&
                block.timestamp <= req.nextDeadline;
     }
+
+    /**
+     * @dev Get the next deadline for a request
+     * @param requestId Unique identifier for the request
+     * @return Next deadline timestamp
+     */
+    function getNextDeadline(bytes32 requestId) external view returns (uint256) {
+        return requests[requestId].nextDeadline;
+    }
+
+    /**
+     * @dev Check if the deadline has passed for a request
+     * @param requestId Unique identifier for the request
+     * @return Whether the deadline has passed
+     */
+    function isDeadlinePassed(bytes32 requestId) external view returns (bool) {
+        return block.timestamp >= requests[requestId].nextDeadline;
+    }
 }

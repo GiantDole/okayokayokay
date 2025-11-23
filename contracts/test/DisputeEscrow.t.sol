@@ -519,6 +519,63 @@ contract DisputeEscrowTest is Test {
         assertFalse(escrow.canSellerRespond(REQUEST_ID_1));
     }
 
+    function testGetNextDeadline() public {
+        // Setup escrow
+        vm.prank(facilitator);
+        usdc.transfer(address(escrow), ESCROW_AMOUNT);
+
+        vm.prank(operator);
+        uint256 currentTime = block.timestamp;
+        escrow.confirmEscrow(REQUEST_ID_1, buyer1, ESCROW_AMOUNT, API_RESPONSE_HASH);
+
+        // Get deadline
+        uint256 deadline = escrow.getNextDeadline(REQUEST_ID_1);
+        assertEq(deadline, currentTime + escrow.escrowPeriod());
+
+        // Open dispute and check deadline changes
+        vm.prank(buyer1);
+        escrow.openDispute(REQUEST_ID_1);
+
+        uint256 newDeadline = escrow.getNextDeadline(REQUEST_ID_1);
+        assertEq(newDeadline, block.timestamp + escrow.disputePeriod());
+    }
+
+    function testIsDeadlinePassed() public {
+        // Setup escrow
+        vm.prank(facilitator);
+        usdc.transfer(address(escrow), ESCROW_AMOUNT);
+
+        vm.prank(operator);
+        escrow.confirmEscrow(REQUEST_ID_1, buyer1, ESCROW_AMOUNT, API_RESPONSE_HASH);
+
+        // Initially deadline should not have passed
+        assertFalse(escrow.isDeadlinePassed(REQUEST_ID_1));
+
+        // Fast forward to just before deadline
+        vm.warp(block.timestamp + escrow.escrowPeriod() - 1);
+        assertFalse(escrow.isDeadlinePassed(REQUEST_ID_1));
+
+        // Fast forward to exactly the deadline
+        vm.warp(block.timestamp + 1);
+        assertTrue(escrow.isDeadlinePassed(REQUEST_ID_1));
+
+        // Fast forward past deadline
+        vm.warp(block.timestamp + 100);
+        assertTrue(escrow.isDeadlinePassed(REQUEST_ID_1));
+    }
+
+    function testDeadlineHelperFunctionsWithNoRequest() public view {
+        // Test with non-existent request ID
+        bytes32 nonExistentId = keccak256("nonexistent");
+
+        // getNextDeadline should return 0 for non-existent request
+        uint256 deadline = escrow.getNextDeadline(nonExistentId);
+        assertEq(deadline, 0);
+
+        // isDeadlinePassed should return true (since 0 < block.timestamp)
+        assertTrue(escrow.isDeadlinePassed(nonExistentId));
+    }
+
     // ============ Edge Cases & Security Tests ============
 
     function testDoubleConfirmSameRequest() public {
