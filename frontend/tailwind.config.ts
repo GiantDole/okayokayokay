@@ -19,7 +19,7 @@ export default {
         success: "#4ADE80",
         warning: "#FACC15",
         error: "#F87171",
-        highlight: "#EC762E",
+        highlight: "#29A694",
         background: "#09090B",
       },
     },
