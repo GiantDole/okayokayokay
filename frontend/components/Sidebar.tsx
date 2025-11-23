@@ -155,7 +155,7 @@ export function DesktopSidebar() {
               href={link.href}
               className={`px-4 py-3 text-sm font-medium rounded-md transition-colors flex items-center gap-2 ${
                 isActive
-                  ? "bg-contrast text-primary"
+                  ? "bg-contrast text-[#41EAD4]"
                   : "text-primary hover:text-primary hover:bg-contrast"
               }`}
             >
