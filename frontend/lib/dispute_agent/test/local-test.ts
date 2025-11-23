@@ -71,9 +71,9 @@ async function testLLMDecision(scenario: string = 'serviceFailed') {
     return false;
   }
 
-  const activity = mockWebhookEvent.event.activity[0];
-  const requestId = activity.log!.topics[1];
-  const contractAddress = activity.log!.address;
+  const eventLog = mockWebhookEvent.event.data.block.logs[0];
+  const requestId = eventLog.topics[1];
+  const contractAddress = eventLog.account.address;
 
   const context: DisputeContext = {
     requestId,

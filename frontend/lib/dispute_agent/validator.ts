@@ -11,41 +11,8 @@ export interface ValidationResult {
  */
 export async function validateWebhookEvent(payload: WebhookEvent): Promise<ValidationResult> {
   try {
-    if (!payload.event) {
-      return { valid: false, error: 'Missing event object' };
-    }
-
-    if (!payload.event.activity || payload.event.activity.length === 0) {
-      return { valid: false, error: 'No activity in webhook payload' };
-    }
-
-    const supportedNetworks = ['BASE_SEPOLIA', 'BASE_MAINNET', 'BASE', 'ETH_SEPOLIA', 'ETH_MAINNET'];
-    if (payload.event.network && !supportedNetworks.includes(payload.event.network)) {
-      return { valid: false, error: `Unsupported network: ${payload.event.network}` };
-    }
-
-    for (const activity of payload.event.activity) {
-      if (!activity.log) {
-        continue;
-      }
-
-      const contractAddress = activity.log.address;
-      if (!ethers.isAddress(contractAddress)) {
-        return { valid: false, error: 'Invalid contract address format' };
-      }
-
-      const txHashRegex = /^0x[a-fA-F0-9]{64}$/;
-      if (!txHashRegex.test(activity.log.transactionHash)) {
-        return { valid: false, error: 'Invalid transaction hash format' };
-      }
-
-      const factoryAddress = process.env.FACTORY_CONTRACT_ADDRESS;
-      if (factoryAddress) {
-        const isValidEscrow = await verifyEscrowContract(contractAddress, factoryAddress);
-        if (!isValidEscrow) {
-          return { valid: false, error: 'Contract is not a valid DisputeEscrow contract' };
-        }
-      }
+    if (!payload.event?.data?.block?.logs || payload.event.data.block.logs.length === 0) {
+      return { valid: false, error: 'No logs in webhook payload' };
     }
 
     return { valid: true };

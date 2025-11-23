@@ -51,24 +51,20 @@ export async function merchantHandlingDisputes(
       };
     }
 
-    for (const activity of payload.event.activity) {
-      if (!activity.log) {
-        continue;
-      }
-
-      const eventSignature = activity.log.topics[0];
+    for (const log of payload.event.data.block.logs) {
+      const eventSignature = log.topics[0];
 
       if (eventSignature !== DISPUTE_OPENED_SIGNATURE) {
         console.log("Ignoring non-DisputeOpened event");
         continue;
       }
 
-      const contractAddress = activity.log.address;
+      const contractAddress = log.account.address;
 
       const iface = new ethers.Interface(DisputeEscrowABI);
       const decoded = iface.parseLog({
-        topics: activity.log.topics,
-        data: activity.log.data,
+        topics: log.topics,
+        data: log.data,
       });
 
       if (!decoded) {
