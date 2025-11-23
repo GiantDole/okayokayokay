@@ -18,13 +18,9 @@ export default function MoneyFlowDiagram({
   amount,
   buyerRefunded = false 
 }: MoneyFlowDiagramProps) {
-  if (!amount || status === null) {
-    return null;
-  }
+  const usdcAmount = amount ? formatUSDC(amount) : '0.00';
 
-  const usdcAmount = formatUSDC(amount);
-
-  const hasEscrowed = status >= 1;
+  const hasEscrowed = status !== null && status >= 1;
   const releasedToSeller = status === 2 || (status === 7 && !buyerRefunded);
   const refundedToBuyer = status === 4 || (status === 7 && buyerRefunded);
 

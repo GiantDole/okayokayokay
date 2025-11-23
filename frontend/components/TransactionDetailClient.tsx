@@ -320,27 +320,54 @@ export default function TransactionDetailClient({
   }
 
   const displayAmount = BigInt(1000) || amount || statusData?.amount || fetchedAmount;
+  
+  const shouldShowCountdown = 
+    countdown && 
+    statusData?.status !== null && 
+    statusData?.status !== 2 && 
+    statusData?.status !== 4 && 
+    statusData?.status !== 7;
 
   return (
     <div className="space-y-6">
-      {statusData && statusData.hasStatus && (
+      <div 
+        className="transition-all duration-300 ease-in-out"
+        style={{
+          opacity: statusData?.hasStatus ? 1 : 0,
+          maxHeight: statusData?.hasStatus ? '500px' : '0px',
+          overflow: 'hidden',
+        }}
+      >
         <MoneyFlowDiagram
-          status={statusData.status}
+          status={statusData?.status ?? null}
           amount={displayAmount}
-          buyerRefunded={statusData.buyerRefunded}
+          buyerRefunded={statusData?.buyerRefunded}
         />
-      )}
+      </div>
 
-      {statusData && statusData.hasStatus && (
+      <div 
+        className="transition-all duration-300 ease-in-out"
+        style={{
+          opacity: statusData?.hasStatus ? 1 : 0,
+          maxHeight: statusData?.hasStatus ? '300px' : '0px',
+          overflow: 'hidden',
+        }}
+      >
         <div className="bg-default border border-contrast rounded-lg p-6">
           <h3 className="text-lg font-semibold text-primary mb-3">
             Contract Status
           </h3>
           <div className="space-y-3">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 min-h-[32px]">
               <span className="text-sm text-primary/70">On-Chain Status:</span>
-              {pendingAction ? (
-                <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-highlight/20 border border-highlight">
+              <div className="relative">
+                <div 
+                  className="absolute inset-0 flex items-center gap-2 px-3 py-1 rounded-full bg-highlight/20 border border-highlight transition-opacity duration-200"
+                  style={{
+                    opacity: pendingAction ? 1 : 0,
+                    pointerEvents: pendingAction ? 'auto' : 'none',
+                  }}
+                >
                   <svg
                     className="animate-spin h-4 w-4 text-highlight"
                     viewBox="0 0 24 24"
@@ -364,16 +391,29 @@ export default function TransactionDetailClient({
                     Updating...
                   </span>
                 </div>
-              ) : (
-                <ContractStatusBadge
-                  statusLabel={statusData.statusLabel}
-                  hasStatus={statusData.hasStatus}
-                  loading={false}
-                  buyerRefunded={statusData.buyerRefunded}
-                />
-              )}
+                <div 
+                  className="transition-opacity duration-200"
+                  style={{
+                    opacity: pendingAction ? 0 : 1,
+                  }}
+                >
+                  <ContractStatusBadge
+                    statusLabel={statusData?.statusLabel ?? ''}
+                    hasStatus={statusData?.hasStatus ?? false}
+                    loading={false}
+                    buyerRefunded={statusData?.buyerRefunded}
+                  />
+                </div>
+              </div>
             </div>
-            {countdown && statusData.status !== null && statusData.status !== 2 && statusData.status !== 4 && statusData.status !== 7 && (
+            <div 
+              className="transition-all duration-300 ease-in-out"
+              style={{
+                opacity: shouldShowCountdown ? 1 : 0,
+                maxHeight: shouldShowCountdown ? '40px' : '0px',
+                overflow: 'hidden',
+              }}
+            >
               <div className="flex items-center gap-2 text-sm">
                 <Clock size={16} className="text-primary/80" />
                 <span className="font-semibold text-primary/80">
@@ -381,10 +421,10 @@ export default function TransactionDetailClient({
                 </span>
                 <span className="text-primary font-mono">{countdown}</span>
               </div>
-            )}
+            </div>
           </div>
         </div>
-      )}
+      </div>
 
       <DisputeActionButtons
         requestId={requestId}
