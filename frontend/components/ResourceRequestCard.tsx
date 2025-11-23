@@ -44,6 +44,26 @@ const getSellerDescription = (sellerDescription: any): string | null => {
   return null;
 };
 
+// Format countdown time remaining
+const formatCountdown = (secondsRemaining: number): string => {
+  if (secondsRemaining <= 0) {
+    return "Deadline passed";
+  }
+
+  const days = Math.floor(secondsRemaining / 86400);
+  const hours = Math.floor((secondsRemaining % 86400) / 3600);
+  const minutes = Math.floor((secondsRemaining % 3600) / 60);
+  const seconds = secondsRemaining % 60;
+
+  const parts: string[] = [];
+  if (days > 0) parts.push(`${days}d`);
+  if (hours > 0) parts.push(`${hours}h`);
+  if (minutes > 0) parts.push(`${minutes}m`);
+  if (seconds > 0 || parts.length === 0) parts.push(`${seconds}s`);
+
+  return parts.join(" ");
+};
+
 export default function ResourceRequestCard({
   request,
 }: ResourceRequestCardProps) {
@@ -51,21 +71,51 @@ export default function ResourceRequestCard({
   const params = request.input_data?.params || {};
   const path = request.input_data?.path || request.resource_url || "Unknown";
 
-  const [nextDeadline, setNextDeadline] = useState<any | null>(null);
+  const [nextDeadline, setNextDeadline] = useState<bigint | number | null>(
+    null
+  );
+  const [countdown, setCountdown] = useState<string>("");
 
   const fetchNextDeadline = async () => {
     const newNextDeadline = await getContractNextDeadline(
       request.request_id,
       request.escrow_contract_address
     );
-    setNextDeadline(newNextDeadline);
+
+    if (newNextDeadline !== null) {
+      setNextDeadline(newNextDeadline);
+    }
   };
 
   useEffect(() => {
     fetchNextDeadline();
-  }, []);
+  }, [request.request_id, request.escrow_contract_address]);
 
-  console.log("nextDeadline", nextDeadline);
+  // Update countdown every second
+  useEffect(() => {
+    if (nextDeadline === null) {
+      setCountdown("");
+      return;
+    }
+
+    // Convert BigInt to number if needed (Unix timestamp in seconds)
+    const deadlineTimestamp =
+      typeof nextDeadline === "bigint" ? Number(nextDeadline) : nextDeadline;
+
+    const updateCountdown = () => {
+      const now = Math.floor(Date.now() / 1000); // Current time in seconds
+      const secondsRemaining = deadlineTimestamp - now;
+      setCountdown(formatCountdown(secondsRemaining));
+    };
+
+    // Update immediately
+    updateCountdown();
+
+    // Update every second
+    const interval = setInterval(updateCountdown, 1000);
+
+    return () => clearInterval(interval);
+  }, [nextDeadline]);
 
   return (
     <Link
@@ -134,6 +184,15 @@ export default function ResourceRequestCard({
           <div className="col-span-2 text-error">
             <span className="font-semibold">Error:</span>{" "}
             {request.error_message}
+          </div>
+        )}
+
+        {countdown && (
+          <div className="col-span-2">
+            <span className="font-semibold text-primary/80">
+              Next Deadline:
+            </span>{" "}
+            <span className="text-primary font-mono">{countdown}</span>
           </div>
         )}
 

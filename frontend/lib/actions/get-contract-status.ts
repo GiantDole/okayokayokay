@@ -324,16 +324,27 @@ export async function getContractNextDeadline(
     });
 
     // Fetch status from blockchain
-    const nextDeadline = await getRequestNextDeadline(
+    const nextDeadlineData = await getRequestNextDeadline(
       requestIdHex,
       escrowContractAddress as Address
     );
 
-    console.log("[getContractStatus] Contract returned status:", status);
+    console.log(
+      "[getContractStatus] Contract returned status:",
+      nextDeadlineData
+    );
 
-    if (status === null) {
-      return null;
-    }
+    const [
+      buyer,
+      amount,
+      escrowedAt,
+      nextDeadline,
+      status,
+      apiResponseHash,
+      disputeAgent,
+      buyerRefunded,
+      sellerRejected,
+    ] = nextDeadlineData;
 
     return nextDeadline;
   } catch (error) {
