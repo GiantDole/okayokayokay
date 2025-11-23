@@ -18,6 +18,7 @@ export interface RequestBatchData {
   statusLabel: string;
   nextDeadline: number | null;
   hasStatus: boolean;
+  buyerRefunded?: boolean;
 }
 
 export async function batchGetRequestData(
@@ -121,6 +122,7 @@ export async function batchGetRequestData(
         statusLabel: RequestStatusLabels[requestStatus],
         nextDeadline: Number(nextDeadline),
         hasStatus: true,
+        buyerRefunded,
       });
     });
 

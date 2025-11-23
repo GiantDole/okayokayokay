@@ -2,7 +2,7 @@ import { getResourceRequestById } from "@/lib/queries/resources.server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import TransactionDetailClient from "@/components/TransactionDetailClient";
-import ContractStatusBadge from "@/components/ContractStatusBadge";
+import ContractStatusBadgeClient from "@/components/ContractStatusBadgeClient";
 import { batchGetRequestData } from "@/lib/contracts/multicall-batch";
 
 interface PageProps {
@@ -81,10 +81,11 @@ export default async function TransactionDetailPage({ params }: PageProps) {
           </div>
           {request.escrow_contract_address && (
             <div className="flex-shrink-0">
-              <ContractStatusBadge
-                statusLabel={statusData?.statusLabel || "Loading..."}
-                hasStatus={statusData?.hasStatus || false}
-                loading={!statusData}
+              <ContractStatusBadgeClient
+                requestId={request.request_id}
+                escrowContractAddress={request.escrow_contract_address}
+                initialStatusLabel={statusData?.statusLabel || "Loading..."}
+                initialHasStatus={statusData?.hasStatus || false}
               />
             </div>
           )}

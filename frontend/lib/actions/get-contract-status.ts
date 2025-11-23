@@ -13,6 +13,7 @@ export interface ContractStatusResult {
   status: RequestStatus | null;
   statusLabel: string;
   hasStatus: boolean;
+  buyerRefunded?: boolean;
 }
 
 type RequestDetailsResult = Awaited<ReturnType<typeof getRequestDetails>>;
@@ -99,15 +100,15 @@ export async function getContractStatus(
       escrowAddress: escrowContractAddress,
     });
 
-    // Fetch status from blockchain
-    const status = await getRequestStatus(
+    // Fetch full request details to get buyerRefunded field
+    const request = await getCachedRequestDetails(
       requestIdHex,
       escrowContractAddress as Address
     );
 
-    console.log("[getContractStatus] Contract returned status:", status);
+    console.log("[getContractStatus] Contract returned request:", request);
 
-    if (status === null) {
+    if (!request) {
       return {
         status: null,
         statusLabel: "Not found",
@@ -116,9 +117,10 @@ export async function getContractStatus(
     }
 
     return {
-      status,
-      statusLabel: RequestStatusLabels[status],
+      status: request.status,
+      statusLabel: RequestStatusLabels[request.status],
       hasStatus: true,
+      buyerRefunded: request.buyerRefunded,
     };
   } catch (error) {
     console.error("[getContractStatus] Error fetching contract status:", error);

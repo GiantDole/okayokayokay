@@ -18,6 +18,7 @@ interface ContractStatusData {
   canOpen: boolean;
   canEscalate: boolean;
   canCancel: boolean;
+  buyerRefunded?: boolean;
 }
 
 // Format countdown time remaining
@@ -85,11 +86,24 @@ export default function TransactionDetailClient({
           canOpen: canOpen.can,
           canEscalate: canEscalate.can,
           canCancel: canCancel.can,
+          buyerRefunded: status.buyerRefunded,
         };
 
         console.log('[TransactionDetail] Fetched status:', newStatusData);
 
         setStatusData(newStatusData);
+
+        window.dispatchEvent(
+          new CustomEvent('contract-status-update', {
+            detail: {
+              requestId,
+              statusLabel: newStatusData.statusLabel,
+              hasStatus: newStatusData.hasStatus,
+              status: newStatusData.status,
+              buyerRefunded: newStatusData.buyerRefunded,
+            },
+          })
+        );
       } catch (error) {
         console.error('Error fetching contract status:', error);
       } finally {
@@ -214,6 +228,7 @@ export default function TransactionDetailClient({
                   statusLabel={statusData.statusLabel}
                   hasStatus={statusData.hasStatus}
                   loading={false}
+                  buyerRefunded={statusData.buyerRefunded}
                 />
               )}
             </div>

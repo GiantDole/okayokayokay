@@ -4,12 +4,14 @@ interface ContractStatusBadgeProps {
   statusLabel: string;
   hasStatus: boolean;
   loading?: boolean;
+  buyerRefunded?: boolean;
 }
 
 export default function ContractStatusBadge({
   statusLabel,
   hasStatus,
   loading = false,
+  buyerRefunded,
 }: ContractStatusBadgeProps) {
 
   if (loading) {
@@ -42,12 +44,17 @@ export default function ContractStatusBadge({
     return 'bg-gray-100 text-gray-600 border-gray-200';
   };
 
+  const isResolved = statusLabel.toLowerCase().includes('resolved');
+  const displayLabel = isResolved && buyerRefunded !== undefined
+    ? `${statusLabel} - ${buyerRefunded ? 'Buyer Refunded' : 'Seller Paid'}`
+    : statusLabel;
+
   return (
     <div className={`text-xs px-2 py-1 rounded border ${getStatusColor(statusLabel)}`}>
       {hasStatus ? (
-        <span className="font-medium">{statusLabel}</span>
+        <span className="font-medium">{displayLabel}</span>
       ) : (
-        <span className="italic">{statusLabel}</span>
+        <span className="italic">{displayLabel}</span>
       )}
     </div>
   );
