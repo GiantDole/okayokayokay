@@ -21,11 +21,9 @@ export default async function Home({ searchParams }: PageProps) {
 
   return (
     <div className="p-8 max-w-7xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2 text-primary">
-          My Transactions
-        </h1>
-        <p className="text-primary/70">View all your x402 transactions</p>
+      <div className="mb-8 flex items-center gap-4">
+        <h1 className="text-2xl font-bold mb-2 text-[#41EAD4]">TRANSACTIONS</h1>
+        <p className="text-primary">View all your x402 transactions</p>
       </div>
 
       {error && (
