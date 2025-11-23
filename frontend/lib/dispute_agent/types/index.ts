@@ -68,6 +68,7 @@ export enum RequestStatus {
   EscrowReleased = 2,
   DisputeOpened = 3,
   SellerAccepted = 4,
-  DisputeEscalated = 5,
-  DisputeResolved = 6
+  DisputeRejected = 5,
+  DisputeEscalated = 6,
+  DisputeResolved = 7
 }
