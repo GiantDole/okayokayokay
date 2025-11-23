@@ -46,7 +46,7 @@ export default function ContractStatusBadge({
 
   const isResolved = statusLabel.toLowerCase().includes('resolved');
   const displayLabel = isResolved && buyerRefunded !== undefined
-    ? `${statusLabel} - ${buyerRefunded ? 'Buyer Refunded' : 'Seller Paid'}`
+    ? `${statusLabel} - ${buyerRefunded ? 'Refunded to Buyer' : 'Released to Seller'}`
     : statusLabel;
 
   return (
