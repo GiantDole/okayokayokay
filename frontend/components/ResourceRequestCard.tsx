@@ -68,6 +68,18 @@ const formatCountdown = (secondsRemaining: number): string => {
   return parts.join(" ");
 };
 
+// Truncate address or hash to show first N and last M characters
+const truncateAddress = (
+  address: string,
+  startChars: number = 6,
+  endChars: number = 4
+): string => {
+  if (!address || address.length <= startChars + endChars) {
+    return address;
+  }
+  return `${address.slice(0, startChars)}...${address.slice(-endChars)}`;
+};
+
 export default function ResourceRequestCard({
   request,
   batchData,
@@ -103,6 +115,19 @@ export default function ResourceRequestCard({
       href={`/transactions/${request.request_id}`}
       className="block border border-contrast rounded-lg p-4 bg-default shadow-sm hover:shadow hover:border-highlight transition cursor-pointer"
     >
+      <div className="flex items-center w-full justify-between gap-2 mb-2">
+        <div className="text-primary/50 text-xs">
+          {new Date(request.created_at).toLocaleString()}
+        </div>
+        {countdown && (
+          <div className="flex items-center gap-2 text-xs text-red-500">
+            <Clock size={14} className="" />
+            <span className="font-semibold ">Next Deadline:</span>
+            <span className=" font-mono text-red-500">{countdown}</span>
+          </div>
+        )}
+      </div>
+
       <div className="flex justify-between items-start gap-4 mb-3">
         <div className="flex-1 min-w-0">
           <div className="text-base font-semibold text-primary mb-1">
@@ -113,6 +138,9 @@ export default function ResourceRequestCard({
               {description}
             </div>
           )}
+          <div className="text-sm text-blue-500 font-mono break-all">
+            {request.input_data?.path}
+          </div>
         </div>
         <div className="flex-shrink-0">
           <ContractStatusBadge
@@ -124,19 +152,21 @@ export default function ResourceRequestCard({
       </div>
 
       <div className="space-y-2 text-xs text-primary/70">
-        {params && Object.keys(params).length > 0 && (
-          <div>
-            <span className="font-semibold text-primary/80">Params:</span>{" "}
-            {Object.entries(params)
-              .map(([k, v]) => `${k}=${v}`)
-              .join(", ")}
-          </div>
-        )}
+        <div className="flex items-center gap-2">
+          {params && Object.keys(params).length > 0 && (
+            <div>
+              <span className="font-semibold text-primary/80">Params:</span>{" "}
+              {Object.entries(params)
+                .map(([k, v]) => `${k}=${v}`)
+                .join(", ")}
+            </div>
+          )}
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 min-w-0">
           {request.user_address && (
             <div className="min-w-0">
-              <CopyButton 
+              <CopyButton
                 value={request.user_address}
                 label="User:"
                 showFullValue={false}
@@ -147,7 +177,7 @@ export default function ResourceRequestCard({
 
           {request.seller_address && (
             <div className="min-w-0">
-              <CopyButton 
+              <CopyButton
                 value={request.seller_address}
                 label="Seller:"
                 showFullValue={false}
@@ -158,7 +188,7 @@ export default function ResourceRequestCard({
 
           {request.tx_hash && (
             <div className="min-w-0">
-              <CopyButton 
+              <CopyButton
                 value={request.tx_hash}
                 label="Tx:"
                 showFullValue={false}
@@ -169,7 +199,7 @@ export default function ResourceRequestCard({
 
           {request.escrow_contract_address && (
             <div className="min-w-0">
-              <CopyButton 
+              <CopyButton
                 value={request.escrow_contract_address}
                 label="Escrow:"
                 showFullValue={false}
@@ -185,20 +215,6 @@ export default function ResourceRequestCard({
             {request.error_message}
           </div>
         )}
-
-        {countdown && (
-          <div className="flex items-center gap-2">
-            <Clock size={14} className="text-primary/80" />
-            <span className="font-semibold text-primary/80">
-              Next Deadline:
-            </span>
-            <span className="text-primary font-mono">{countdown}</span>
-          </div>
-        )}
-
-        <div className="text-primary/50">
-          {new Date(request.created_at).toLocaleString()}
-        </div>
       </div>
     </Link>
   );
