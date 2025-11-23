@@ -21,20 +21,9 @@ export default async function RequestsPage({ searchParams }: PageProps) {
 
   return (
     <div className="p-8 max-w-7xl mx-auto">
-      <div className="mb-6">
-        <Link
-          href="/resources"
-          className="text-sm text-primary/70 hover:text-primary flex items-center gap-2"
-        >
-          ← Back to Resources
-        </Link>
-      </div>
-
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2 text-primary">
-          My Transactions
-        </h1>
-        <p className="text-primary/70">View all your x402 transactions</p>
+      <div className="mb-8 flex items-center gap-4">
+        <h1 className="text-2xl font-bold mb-2 text-[#41EAD4]">TRANSACTIONS</h1>
+        <p className="text-primary">View all your x402 transactions</p>
       </div>
 
       {error && (
