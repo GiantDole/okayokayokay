@@ -69,13 +69,13 @@ export async function handleDisputeWebhook(payload: WebhookEvent): Promise<Webho
       console.log('Fetching request details from blockchain...');
       const serviceRequest = await fetchRequestDetails(contractAddress, requestId);
 
-      if (serviceRequest.status !== RequestStatus.DisputeEscalated) {
-        console.error(`Request ${requestId} is not in escalated state`);
-        return {
-          success: false,
-          error: 'Request not in escalated state'
-        };
-      }
+      // if (serviceRequest.status !== RequestStatus.DisputeEscalated) {
+      //   console.error(`Request ${requestId} is not in escalated state`);
+      //   return {
+      //     success: false,
+      //     error: 'Request not in escalated state'
+      //   };
+      // }
 
       console.log('Fetching resource request data from Supabase...');
       const resourceRequestData = await fetchResourceRequestData(requestId);
