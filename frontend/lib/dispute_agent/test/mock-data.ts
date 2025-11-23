@@ -7,32 +7,25 @@ export const mockWebhookEvent = {
   webhookId: 'wh_test123',
   id: 'whevt_test456',
   createdAt: new Date().toISOString(),
-  type: 'ADDRESS_ACTIVITY' as const,
+  type: 'GRAPHQL' as const,
   event: {
-    network: 'BASE_SEPOLIA',
-    activity: [{
-      blockNum: '0x1e240',
-      hash: '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
-      fromAddress: '0xBuyer1234567890123456789012345678901234',
-      toAddress: '0x1234567890123456789012345678901234567890',
-      value: 0,
-      asset: 'ETH',
-      category: 'external',
-      log: {
-        address: '0x1234567890123456789012345678901234567890',
-        topics: [
-          DISPUTE_ESCALATED_SIGNATURE,
-          REQUEST_ID
-        ],
-        data: '0x',
-        blockNumber: '0x1e240',
-        transactionHash: '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
-        transactionIndex: '0x0',
-        blockHash: '0xblockhash1234567890123456789012345678901234567890123456789012345',
-        logIndex: '0x0',
-        removed: false
+    data: {
+      block: {
+        logs: [{
+          account: { address: '0x1234567890123456789012345678901234567890' },
+          topics: [
+            DISPUTE_ESCALATED_SIGNATURE,
+            REQUEST_ID
+          ],
+          data: '0x',
+          transaction: {
+            hash: '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890'
+          }
+        }]
       }
-    }]
+    },
+    sequenceNumber: '10000000718580233008',
+    network: 'BASE_MAINNET'
   }
 };
 
@@ -52,7 +45,7 @@ export const mockAPIResponseData = {
   id: 'test-123',
   request_id: '0x1111111111111111111111111111111111111111111111111111111111111111',
   response_hash: '0x2222222222222222222222222222222222222222222222222222222222222222',
-  request_data: {
+  input_data: {
     endpoint: '/api/translate',
     method: 'POST',
     body: {
@@ -61,7 +54,7 @@ export const mockAPIResponseData = {
       to: 'es'
     }
   },
-  response_data: {
+  output_data: {
     status: 500,
     error: 'Internal server error',
     message: 'Translation service temporarily unavailable'
@@ -107,7 +100,7 @@ export const testScenarios = {
   serviceFailed: {
     apiResponse: {
       ...mockAPIResponseData,
-      response_data: {
+      output_data: {
         status: 500,
         error: 'Internal server error',
         message: 'Service unavailable'
@@ -123,7 +116,7 @@ export const testScenarios = {
   serviceSuccess: {
     apiResponse: {
       ...mockAPIResponseData,
-      response_data: {
+      output_data: {
         status: 200,
         translation: 'Hola mundo',
         confidence: 0.99
@@ -139,7 +132,7 @@ export const testScenarios = {
   partialFailure: {
     apiResponse: {
       ...mockAPIResponseData,
-      response_data: {
+      output_data: {
         status: 200,
         translation: null,
         error: 'Translation confidence too low',
@@ -156,7 +149,7 @@ export const testScenarios = {
   rateLimitError: {
     apiResponse: {
       ...mockAPIResponseData,
-      response_data: {
+      output_data: {
         status: 429,
         error: 'Rate limit exceeded',
         message: 'Too many requests from this buyer'

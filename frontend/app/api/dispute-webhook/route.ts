@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     console.log('Dispute webhook received:', {
       webhookId: payload.webhookId,
       network: payload.event?.network,
-      activityCount: payload.event?.activity?.length || 0
+      logsCount: payload.event?.data?.block?.logs?.length || 0
     });
 
     const result = await handleDisputeWebhook(payload);

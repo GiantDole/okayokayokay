@@ -118,35 +118,26 @@ export default function TransactionDetailClient({
 
   return (
     <div className="space-y-6">
-      {/* Show status badge only when NOT in pending state */}
-      {!pendingAction && statusData && statusData.hasStatus && (
+      {statusData && statusData.hasStatus && (
         <div className="bg-default border border-contrast rounded-lg p-6">
           <h3 className="text-lg font-semibold text-primary mb-3">Contract Status</h3>
           <div className="flex items-center gap-3">
             <span className="text-sm text-primary/70">On-Chain Status:</span>
-            <ContractStatusBadge
-              requestId={requestId}
-              escrowContractAddress={escrowContractAddress}
-              key={refreshKey}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Show pending banner when updating status */}
-      {pendingAction && (
-        <div className="bg-highlight/20 border border-highlight rounded-lg p-4">
-          <div className="flex items-center gap-3">
-            <svg className="animate-spin h-5 w-5 text-highlight" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-            </svg>
-            <div>
-              <p className="text-sm font-semibold text-highlight">Updating Status</p>
-              <p className="text-xs text-highlight/80">
-                Transaction confirmed! Refreshing contract status...
-              </p>
-            </div>
+            {pendingAction ? (
+              <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-highlight/20 border border-highlight">
+                <svg className="animate-spin h-4 w-4 text-highlight" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+                <span className="text-sm font-medium text-highlight">Updating...</span>
+              </div>
+            ) : (
+              <ContractStatusBadge
+                requestId={requestId}
+                escrowContractAddress={escrowContractAddress}
+                key={refreshKey}
+              />
+            )}
           </div>
         </div>
       )}

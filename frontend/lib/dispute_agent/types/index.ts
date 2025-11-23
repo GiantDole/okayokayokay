@@ -2,29 +2,22 @@ export interface AlchemyWebhookPayload {
   webhookId: string;
   id: string;
   createdAt: string;
-  type: 'ADDRESS_ACTIVITY' | 'GRAPHQL';
+  type: 'GRAPHQL';
   event: {
-    network: string;
-    activity: Array<{
-      blockNum: string;
-      hash: string;
-      fromAddress: string;
-      toAddress: string;
-      value: number;
-      asset: string;
-      category: string;
-      log?: {
-        address: string;
-        topics: string[];
-        data: string;
-        blockNumber: string;
-        transactionHash: string;
-        transactionIndex: string;
-        blockHash: string;
-        logIndex: string;
-        removed: boolean;
+    data: {
+      block: {
+        logs: Array<{
+          account: { address: string };
+          topics: string[];
+          data: string;
+          transaction: {
+            hash: string;
+          };
+        }>;
       };
-    }>;
+    };
+    sequenceNumber: string;
+    network: string;
   };
 }
 
