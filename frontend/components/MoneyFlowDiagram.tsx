@@ -135,10 +135,10 @@ export default function MoneyFlowDiagram({
             {status === 1 && 'Funds in Escrow'}
             {status === 2 && 'Released to Seller'}
             {status === 3 && 'Dispute Opened'}
-            {status === 4 && 'Refunded to Buyer'}
+            {status === 4 && 'Seller Refunded'}
             {status === 5 && 'Dispute Rejected by Seller'}
             {status === 6 && 'Escalated to Agent'}
-            {status === 7 && (buyerRefunded ? 'Refunded to Buyer' : 'Released to Seller')}
+            {status === 7 && (buyerRefunded ? 'Seller Refunded' : 'Released to Seller')}
           </span>
         </div>
       </div>

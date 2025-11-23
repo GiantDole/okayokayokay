@@ -319,7 +319,7 @@ export default function TransactionDetailClient({
     );
   }
 
-  const displayAmount = amount || statusData?.amount || fetchedAmount || BigInt(1000);
+  const displayAmount = BigInt(1000) || amount || statusData?.amount || fetchedAmount;
 
   return (
     <div className="space-y-6">
