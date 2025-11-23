@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { Clock } from 'lucide-react';
-import DisputeActionButtons from './DisputeActionButtons';
-import ContractStatusBadge from './ContractStatusBadge';
-import MoneyFlowDiagram from './MoneyFlowDiagram';
-import { getContractNextDeadline } from '@/lib/actions/get-contract-status';
+import { useState, useEffect } from "react";
+import { Clock } from "lucide-react";
+import DisputeActionButtons from "./DisputeActionButtons";
+import ContractStatusBadge from "./ContractStatusBadge";
+import MoneyFlowDiagram from "./MoneyFlowDiagram";
+import { getContractNextDeadline } from "@/lib/actions/get-contract-status";
 
 /**
  * TransactionDetailClient - Single source of truth for contract status
- * 
+ *
  * Adaptive Polling Strategy:
  * - Starts at 1000ms (1 second) intervals
  * - When status changes detected: switches to 500ms (0.5 second) for 10 seconds
@@ -64,7 +64,9 @@ export default function TransactionDetailClient({
   const [statusData, setStatusData] = useState<ContractStatusData | null>(null);
   const [loading, setLoading] = useState(true);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
-  const [nextDeadline, setNextDeadline] = useState<bigint | number | null>(null);
+  const [nextDeadline, setNextDeadline] = useState<bigint | number | null>(
+    null
+  );
   const [countdown, setCountdown] = useState<string>("");
   const [pollInterval, setPollInterval] = useState(1000);
   const [lastStatus, setLastStatus] = useState<number | null>(null);
@@ -83,10 +85,18 @@ export default function TransactionDetailClient({
 
       try {
         const [statusRes, openRes, escalateRes, cancelRes] = await Promise.all([
-          fetch(`/api/contract-status?requestId=${requestId}&escrowAddress=${escrowContractAddress}`),
-          fetch(`/api/contract-status/can-open?requestId=${requestId}&escrowAddress=${escrowContractAddress}`),
-          fetch(`/api/contract-status/can-escalate?requestId=${requestId}&escrowAddress=${escrowContractAddress}`),
-          fetch(`/api/contract-status/can-cancel?requestId=${requestId}&escrowAddress=${escrowContractAddress}`),
+          fetch(
+            `/api/contract-status?requestId=${requestId}&escrowAddress=${escrowContractAddress}`
+          ),
+          fetch(
+            `/api/contract-status/can-open?requestId=${requestId}&escrowAddress=${escrowContractAddress}`
+          ),
+          fetch(
+            `/api/contract-status/can-escalate?requestId=${requestId}&escrowAddress=${escrowContractAddress}`
+          ),
+          fetch(
+            `/api/contract-status/can-cancel?requestId=${requestId}&escrowAddress=${escrowContractAddress}`
+          ),
         ]);
 
         const [status, canOpen, canEscalate, canCancel] = await Promise.all([
@@ -109,13 +119,14 @@ export default function TransactionDetailClient({
 
         if (!isActive) return;
 
-        const statusChanged = lastStatus !== null && lastStatus !== newStatusData.status;
-        
+        const statusChanged =
+          lastStatus !== null && lastStatus !== newStatusData.status;
+
         if (statusChanged) {
-          console.log('[TransactionDetail] Status changed!', {
+          console.log("[TransactionDetail] Status changed!", {
             old: lastStatus,
             new: newStatusData.status,
-            label: newStatusData.statusLabel
+            label: newStatusData.statusLabel,
           });
           setPollInterval(500);
         }
@@ -125,7 +136,7 @@ export default function TransactionDetailClient({
         setLoading(false);
 
         window.dispatchEvent(
-          new CustomEvent('contract-status-update', {
+          new CustomEvent("contract-status-update", {
             detail: {
               requestId,
               statusLabel: newStatusData.statusLabel,
@@ -140,7 +151,10 @@ export default function TransactionDetailClient({
           timeoutId = setTimeout(fetchContractStatus, pollInterval);
         }
       } catch (error) {
-        console.error('[TransactionDetail] Error fetching contract status:', error);
+        console.error(
+          "[TransactionDetail] Error fetching contract status:",
+          error
+        );
         if (isActive) {
           timeoutId = setTimeout(fetchContractStatus, pollInterval);
         }
@@ -159,7 +173,7 @@ export default function TransactionDetailClient({
   useEffect(() => {
     if (pollInterval === 500) {
       const slowDownTimer = setTimeout(() => {
-        console.log('[TransactionDetail] Slowing down polling to 2000ms');
+        console.log("[TransactionDetail] Slowing down polling to 2000ms");
         setPollInterval(2000);
       }, 10000);
 
@@ -174,8 +188,11 @@ export default function TransactionDetailClient({
 
     const fetchNextDeadline = async () => {
       if (!isActive) return;
-      
-      const deadline = await getContractNextDeadline(requestId, escrowContractAddress);
+
+      const deadline = await getContractNextDeadline(
+        requestId,
+        escrowContractAddress
+      );
       if (deadline !== null && isActive) {
         setNextDeadline(deadline);
       }
@@ -213,10 +230,12 @@ export default function TransactionDetailClient({
   }, [nextDeadline]);
 
   const handleSuccess = (action: string) => {
-    console.log('[TransactionDetail] Transaction confirmed, starting aggressive polling');
+    console.log(
+      "[TransactionDetail] Transaction confirmed, starting aggressive polling"
+    );
     setPendingAction(action);
     setPollInterval(500);
-    
+
     setTimeout(() => {
       setPendingAction(null);
     }, 3000);
@@ -236,9 +255,24 @@ export default function TransactionDetailClient({
     return (
       <div className="bg-default border border-contrast rounded-lg p-6">
         <div className="flex items-center gap-3">
-          <svg className="animate-spin h-5 w-5 text-primary" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+          <svg
+            className="animate-spin h-5 w-5 text-primary"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+              fill="none"
+            />
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            />
           </svg>
           <p className="text-sm text-primary">Loading contract status...</p>
         </div>
@@ -249,7 +283,7 @@ export default function TransactionDetailClient({
   return (
     <div className="space-y-6">
       {statusData && statusData.hasStatus && (amount || statusData.amount) && (
-        <MoneyFlowDiagram 
+        <MoneyFlowDiagram
           status={statusData.status}
           amount={amount || statusData.amount || null}
           buyerRefunded={statusData.buyerRefunded}
@@ -258,17 +292,36 @@ export default function TransactionDetailClient({
 
       {statusData && statusData.hasStatus && (
         <div className="bg-default border border-contrast rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-primary mb-3">Contract Status</h3>
+          <h3 className="text-lg font-semibold text-primary mb-3">
+            Contract Status
+          </h3>
           <div className="space-y-3">
             <div className="flex items-center gap-3">
               <span className="text-sm text-primary/70">On-Chain Status:</span>
               {pendingAction ? (
                 <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-highlight/20 border border-highlight">
-                  <svg className="animate-spin h-4 w-4 text-highlight" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  <svg
+                    className="animate-spin h-4 w-4 text-highlight"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                      fill="none"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    />
                   </svg>
-                  <span className="text-sm font-medium text-highlight">Updating...</span>
+                  <span className="text-sm font-medium text-highlight">
+                    Updating...
+                  </span>
                 </div>
               ) : (
                 <ContractStatusBadge
@@ -282,7 +335,9 @@ export default function TransactionDetailClient({
             {countdown && statusData.status !== null && statusData.status !== 2 && statusData.status !== 4 && statusData.status !== 7 && (
               <div className="flex items-center gap-2 text-sm">
                 <Clock size={16} className="text-primary/80" />
-                <span className="font-semibold text-primary/80">Next Deadline:</span>
+                <span className="font-semibold text-primary/80">
+                  Next Deadline:
+                </span>
                 <span className="text-primary font-mono">{countdown}</span>
               </div>
             )}
@@ -294,29 +349,28 @@ export default function TransactionDetailClient({
         requestId={requestId}
         escrowAddress={escrowContractAddress}
         canOpen={
-          pendingAction === 'open' || pendingAction === 'escalate' 
-            ? false 
-            : pendingAction === 'cancel' 
-              ? false 
-              : (statusData?.canOpen ?? false)
+          pendingAction === "open" || pendingAction === "escalate"
+            ? false
+            : pendingAction === "cancel"
+            ? false
+            : statusData?.canOpen ?? false
         }
         canEscalate={
-          pendingAction === 'escalate' 
-            ? false 
-            : pendingAction === 'open'
-              ? false 
-              : (statusData?.canEscalate ?? false)
+          pendingAction === "escalate"
+            ? false
+            : pendingAction === "open"
+            ? false
+            : statusData?.canEscalate ?? false
         }
         canCancel={
-          pendingAction === 'cancel' 
-            ? false 
-            : pendingAction === 'open' || pendingAction === 'escalate'
-              ? true 
-              : (statusData?.canCancel ?? false)
+          pendingAction === "cancel"
+            ? false
+            : pendingAction === "open" || pendingAction === "escalate"
+            ? true
+            : statusData?.canCancel ?? false
         }
         onSuccess={handleSuccess}
       />
     </div>
   );
 }
-
