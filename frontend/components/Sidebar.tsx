@@ -127,7 +127,7 @@ export function DesktopSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden md:flex w-64 bg-default border-r border-contrast shadow-sm sticky top-0 h-screen flex-col overflow-hidden">
+    <aside className="hidden md:flex w-64  border-r border-contrast shadow-sm sticky top-0 h-screen flex-col overflow-hidden">
       {/* Logo */}
       <div className="p-6 border-b border-contrast flex-shrink-0">
         <Link
