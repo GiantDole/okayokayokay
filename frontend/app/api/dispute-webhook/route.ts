@@ -39,12 +39,12 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('Dispute webhook received:', {
-      webhookId: payload.webhookId,
-      network: payload.event?.network,
-      logsCount: payload.event?.data?.block?.logs?.length || 0
+      webhookId: body.webhookId,
+      network: body.event?.network,
+      logsCount: body.event?.data?.block?.logs?.length || 0
     });
 
-    const result = await handleDisputeWebhook(payload);
+    const result = await handleDisputeWebhook(body);
 
     // Return the response
     return NextResponse.json(result, {

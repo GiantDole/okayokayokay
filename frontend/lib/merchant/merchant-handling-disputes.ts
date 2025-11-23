@@ -37,29 +37,29 @@ export async function merchantHandlingDisputes(
 
   try {
     // 1. Basic validation
-    if (!webhookEvent.event) {
+    if (!payload.event) {
       return { success: false, error: "Missing event type" };
     }
 
-    if (!webhookEvent.contractAddress) {
+    if (!payload.contractAddress) {
       return { success: false, error: "Missing contract address" };
     }
 
-    if (!webhookEvent.args?.requestId) {
+    if (!payload.args?.requestId) {
       return { success: false, error: "Missing request ID" };
     }
 
     // 2. Only process DisputeOpened events
-    if (webhookEvent.event !== "DisputeOpened") {
-      console.log(`Ignoring event type: ${webhookEvent.event}`);
+    if (payload.event !== "DisputeOpened") {
+      console.log(`Ignoring event type: ${payload.event}`);
       return {
         success: true,
         message: "Event type not handled",
       };
     }
 
-    const { requestId } = webhookEvent.args;
-    const { contractAddress } = webhookEvent;
+    const { requestId } = payload.args;
+    const { contractAddress } = payload;
 
     // 3. Validate addresses and request ID format
     if (!ethers.isAddress(contractAddress)) {
