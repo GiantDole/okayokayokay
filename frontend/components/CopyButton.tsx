@@ -31,10 +31,10 @@ export default function CopyButton({
   };
 
   return (
-    <div className={`inline-flex items-center gap-2 ${className}`}>
-      {label && <span className="text-primary/60">{label}</span>}
-      <div className="inline-flex items-center gap-1 bg-contrast px-2 py-1 rounded">
-        <code className="text-xs font-mono text-primary break-all">
+    <div className={`flex items-center gap-2 ${className}`}>
+      {label && <span className="text-primary/60 whitespace-nowrap min-w-[60px]">{label}</span>}
+      <div className="flex items-center gap-1 bg-contrast px-2 py-1 rounded flex-1 min-w-0">
+        <code className="text-xs font-mono text-primary truncate">
           {showFullValue ? value : `${value.slice(0, 6)}...${value.slice(-4)}`}
         </code>
         <button

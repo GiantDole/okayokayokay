@@ -132,45 +132,51 @@ export default function ResourceRequestCard({
           </div>
         )}
 
-        {request.user_address && (
-          <div>
-            <CopyButton 
-              value={request.user_address}
-              label="User:"
-              showFullValue={true}
-            />
-          </div>
-        )}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 min-w-0">
+          {request.user_address && (
+            <div className="min-w-0">
+              <CopyButton 
+                value={request.user_address}
+                label="User:"
+                showFullValue={false}
+                className="w-full"
+              />
+            </div>
+          )}
 
-        {request.seller_address && (
-          <div>
-            <CopyButton 
-              value={request.seller_address}
-              label="Seller:"
-              showFullValue={true}
-            />
-          </div>
-        )}
+          {request.seller_address && (
+            <div className="min-w-0">
+              <CopyButton 
+                value={request.seller_address}
+                label="Seller:"
+                showFullValue={false}
+                className="w-full"
+              />
+            </div>
+          )}
 
-        {request.tx_hash && (
-          <div>
-            <CopyButton 
-              value={request.tx_hash}
-              label="Tx:"
-              showFullValue={true}
-            />
-          </div>
-        )}
+          {request.tx_hash && (
+            <div className="min-w-0">
+              <CopyButton 
+                value={request.tx_hash}
+                label="Tx:"
+                showFullValue={false}
+                className="w-full"
+              />
+            </div>
+          )}
 
-        {request.escrow_contract_address && (
-          <div>
-            <CopyButton 
-              value={request.escrow_contract_address}
-              label="Escrow:"
-              showFullValue={true}
-            />
-          </div>
-        )}
+          {request.escrow_contract_address && (
+            <div className="min-w-0">
+              <CopyButton 
+                value={request.escrow_contract_address}
+                label="Escrow:"
+                showFullValue={false}
+                className="w-full"
+              />
+            </div>
+          )}
+        </div>
 
         {request.error_message && (
           <div className="text-error">

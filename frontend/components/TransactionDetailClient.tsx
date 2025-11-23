@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Clock } from 'lucide-react';
 import DisputeActionButtons from './DisputeActionButtons';
 import ContractStatusBadge from './ContractStatusBadge';
+import MoneyFlowDiagram from './MoneyFlowDiagram';
 import { getContractNextDeadline } from '@/lib/actions/get-contract-status';
 
 /**
@@ -21,6 +22,7 @@ import { getContractNextDeadline } from '@/lib/actions/get-contract-status';
 interface TransactionDetailClientProps {
   requestId: string;
   escrowContractAddress: string | null;
+  amount?: bigint;
 }
 
 interface ContractStatusData {
@@ -31,6 +33,7 @@ interface ContractStatusData {
   canEscalate: boolean;
   canCancel: boolean;
   buyerRefunded?: boolean;
+  amount?: bigint;
 }
 
 // Format countdown time remaining
@@ -56,6 +59,7 @@ const formatCountdown = (secondsRemaining: number): string => {
 export default function TransactionDetailClient({
   requestId,
   escrowContractAddress,
+  amount,
 }: TransactionDetailClientProps) {
   const [statusData, setStatusData] = useState<ContractStatusData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -100,6 +104,7 @@ export default function TransactionDetailClient({
           canEscalate: canEscalate.can,
           canCancel: canCancel.can,
           buyerRefunded: status.buyerRefunded,
+          amount: status.amount ? BigInt(status.amount) : undefined,
         };
 
         if (!isActive) return;
@@ -243,6 +248,14 @@ export default function TransactionDetailClient({
 
   return (
     <div className="space-y-6">
+      {statusData && statusData.hasStatus && (amount || statusData.amount) && (
+        <MoneyFlowDiagram 
+          status={statusData.status}
+          amount={amount || statusData.amount || null}
+          buyerRefunded={statusData.buyerRefunded}
+        />
+      )}
+
       {statusData && statusData.hasStatus && (
         <div className="bg-default border border-contrast rounded-lg p-6">
           <h3 className="text-lg font-semibold text-primary mb-3">Contract Status</h3>
@@ -284,21 +297,21 @@ export default function TransactionDetailClient({
           pendingAction === 'open' || pendingAction === 'escalate' 
             ? false 
             : pendingAction === 'cancel' 
-              ? false // After cancel, don't immediately show open (wait for confirmation)
+              ? false 
               : (statusData?.canOpen ?? false)
         }
         canEscalate={
           pendingAction === 'escalate' 
             ? false 
             : pendingAction === 'open'
-              ? false // After opening dispute, escalate isn't immediately available (seller must respond first)
+              ? false 
               : (statusData?.canEscalate ?? false)
         }
         canCancel={
           pendingAction === 'cancel' 
             ? false 
             : pendingAction === 'open' || pendingAction === 'escalate'
-              ? true // Optimistically show cancel after opening or escalating dispute
+              ? true 
               : (statusData?.canCancel ?? false)
         }
         onSuccess={handleSuccess}

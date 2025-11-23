@@ -93,7 +93,7 @@ export default function DisputesPageClient() {
             <CopyButton 
               value={walletAddress}
               label="Showing disputes for wallet:"
-              showFullValue={true}
+              showFullValue={false}
             />
           </div>
         </div>

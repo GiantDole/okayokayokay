@@ -26,6 +26,40 @@ function getSellerDescription(sellerDescription: any): string | null {
   return null;
 }
 
+function getPriceFromSellerDescription(sellerDescription: any): bigint | null {
+  if (!sellerDescription) return null;
+
+  // x402 format: accepts[].maxAmountRequired (already in USDC wei format, 6 decimals)
+  if (sellerDescription.accepts && Array.isArray(sellerDescription.accepts)) {
+    const firstAccept = sellerDescription.accepts[0];
+    const maxAmount = firstAccept?.maxAmountRequired;
+    
+    if (typeof maxAmount === 'string') {
+      try {
+        return BigInt(maxAmount);
+      } catch (e) {
+        console.error('Failed to parse maxAmountRequired:', maxAmount, e);
+      }
+    }
+    if (typeof maxAmount === 'number') {
+      return BigInt(maxAmount);
+    }
+  }
+
+  // Fallback: check for payment.pricePerRequest (if in dollars, multiply by 1e6)
+  if (sellerDescription.payment?.pricePerRequest) {
+    const price = sellerDescription.payment.pricePerRequest;
+    if (typeof price === 'number') {
+      return BigInt(Math.floor(price * 1e6));
+    }
+    if (typeof price === 'string') {
+      return BigInt(price);
+    }
+  }
+
+  return null;
+}
+
 export default async function TransactionDetailPage({ params }: PageProps) {
   const { id } = await params;
   const { data: request, error } = await getResourceRequestById(id);
@@ -44,6 +78,7 @@ export default async function TransactionDetailPage({ params }: PageProps) {
   const statusData = batchData.get(request.request_id);
 
   const description = getSellerDescription(request.seller_description);
+  const priceAmount = getPriceFromSellerDescription(request.seller_description);
   const params_data = request.input_data?.params || {};
   const path = request.input_data?.path || request.resource_url || "Unknown";
 
@@ -185,6 +220,7 @@ export default async function TransactionDetailPage({ params }: PageProps) {
       <TransactionDetailClient
         requestId={request.request_id}
         escrowContractAddress={request.escrow_contract_address}
+        amount={priceAmount || statusData?.amount}
       />
     </div>
   );

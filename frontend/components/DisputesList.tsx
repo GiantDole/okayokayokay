@@ -115,7 +115,7 @@ export default function DisputesList({ disputes }: DisputesListProps) {
                 <CopyButton 
                   value={dispute.request_id}
                   label="Request ID:"
-                  showFullValue={true}
+                  showFullValue={false}
                 />
               </div>
 
@@ -124,7 +124,7 @@ export default function DisputesList({ disputes }: DisputesListProps) {
                   <CopyButton 
                     value={dispute.seller_address}
                     label="Seller:"
-                    showFullValue={true}
+                    showFullValue={false}
                   />
                 </div>
               )}

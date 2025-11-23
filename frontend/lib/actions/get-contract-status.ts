@@ -14,6 +14,7 @@ export interface ContractStatusResult {
   statusLabel: string;
   hasStatus: boolean;
   buyerRefunded?: boolean;
+  amount?: string;
 }
 
 type RequestDetailsResult = Awaited<ReturnType<typeof getRequestDetails>>;
@@ -121,6 +122,7 @@ export async function getContractStatus(
       statusLabel: RequestStatusLabels[request.status],
       hasStatus: true,
       buyerRefunded: request.buyerRefunded,
+      amount: request.amount?.toString(),
     };
   } catch (error) {
     console.error("[getContractStatus] Error fetching contract status:", error);

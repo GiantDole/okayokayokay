@@ -19,6 +19,7 @@ export interface RequestBatchData {
   nextDeadline: number | null;
   hasStatus: boolean;
   buyerRefunded?: boolean;
+  amount?: bigint;
 }
 
 export async function batchGetRequestData(
@@ -123,6 +124,7 @@ export async function batchGetRequestData(
         nextDeadline: Number(nextDeadline),
         hasStatus: true,
         buyerRefunded,
+        amount,
       });
     });
 
