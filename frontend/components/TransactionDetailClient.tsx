@@ -50,6 +50,7 @@ export default function TransactionDetailClient({
   const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [nextDeadline, setNextDeadline] = useState<bigint | number | null>(null);
   const [countdown, setCountdown] = useState<string>("");
+  const [aggressivePolling, setAggressivePolling] = useState(false);
 
   useEffect(() => {
     const fetchContractStatus = async () => {
@@ -59,7 +60,6 @@ export default function TransactionDetailClient({
       }
 
       try {
-        // Don't show loading spinner during polling (prevents flicker)
         if (refreshKey === 0) {
           setLoading(true);
         }
@@ -89,7 +89,6 @@ export default function TransactionDetailClient({
 
         console.log('[TransactionDetail] Fetched status:', newStatusData);
 
-        // Only update status data if not in pending state, or if status actually changed
         setStatusData(newStatusData);
       } catch (error) {
         console.error('Error fetching contract status:', error);
@@ -100,6 +99,27 @@ export default function TransactionDetailClient({
 
     fetchContractStatus();
   }, [requestId, escrowContractAddress, refreshKey]);
+
+  // Aggressive polling after transactions
+  useEffect(() => {
+    if (!aggressivePolling || !escrowContractAddress) return;
+
+    const pollInterval = setInterval(() => {
+      console.log('[TransactionDetail] Aggressive poll');
+      setRefreshKey((prev) => prev + 1);
+    }, 500);
+
+    const stopPollingTimeout = setTimeout(() => {
+      console.log('[TransactionDetail] Stopping aggressive polling');
+      setAggressivePolling(false);
+      clearInterval(pollInterval);
+    }, 5000);
+
+    return () => {
+      clearInterval(pollInterval);
+      clearTimeout(stopPollingTimeout);
+    };
+  }, [aggressivePolling, escrowContractAddress]);
 
   // Fetch next deadline
   useEffect(() => {
@@ -138,18 +158,15 @@ export default function TransactionDetailClient({
   }, [nextDeadline]);
 
   const handleSuccess = (action: string) => {
+    console.log('[TransactionDetail] Transaction confirmed, starting aggressive polling');
     setPendingAction(action);
     
-    // Transaction is already confirmed when this is called
-    // Immediately refetch status
     setRefreshKey((prev) => prev + 1);
+    setAggressivePolling(true);
     
-    // Do one more refetch after 2 seconds in case the indexer/webhook needs time to process
     setTimeout(() => {
-      console.log('[TransactionDetail] Final status refetch after indexer delay');
-      setRefreshKey((prev) => prev + 1);
       setPendingAction(null);
-    }, 2000);
+    }, 5000);
   };
 
   if (!escrowContractAddress) {
@@ -194,9 +211,9 @@ export default function TransactionDetailClient({
                 </div>
               ) : (
                 <ContractStatusBadge
-                  requestId={requestId}
-                  escrowContractAddress={escrowContractAddress}
-                  key={refreshKey}
+                  statusLabel={statusData.statusLabel}
+                  hasStatus={statusData.hasStatus}
+                  loading={false}
                 />
               )}
             </div>

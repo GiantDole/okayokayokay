@@ -4,8 +4,8 @@ import Link from "next/link";
 import { Clock } from "lucide-react";
 
 import ContractStatusBadge from "./ContractStatusBadge";
-import { getContractNextDeadline } from "@/lib/actions/get-contract-status";
 import { useEffect, useState } from "react";
+import type { RequestBatchData } from "@/lib/contracts/multicall-batch";
 
 interface ResourceRequest {
   request_id: string;
@@ -25,6 +25,7 @@ interface ResourceRequest {
 
 interface ResourceRequestCardProps {
   request: ResourceRequest;
+  batchData?: RequestBatchData;
 }
 
 // Extract description from seller_description (x402 well-known data)
@@ -67,52 +68,29 @@ const formatCountdown = (secondsRemaining: number): string => {
 
 export default function ResourceRequestCard({
   request,
+  batchData,
 }: ResourceRequestCardProps) {
   const description = getSellerDescription(request.seller_description);
   const params = request.input_data?.params || {};
   const path = request.input_data?.path || request.resource_url || "Unknown";
 
-  const [nextDeadline, setNextDeadline] = useState<bigint | number | null>(
-    null
-  );
+  const nextDeadline = batchData?.nextDeadline ?? null;
   const [countdown, setCountdown] = useState<string>("");
 
-  useEffect(() => {
-    const fetchNextDeadline = async () => {
-      const newNextDeadline = await getContractNextDeadline(
-        request.request_id,
-        request.escrow_contract_address
-      );
-
-      if (newNextDeadline !== null) {
-        setNextDeadline(newNextDeadline);
-      }
-    };
-
-    fetchNextDeadline();
-  }, [request.request_id, request.escrow_contract_address]);
-
-  // Update countdown every second
   useEffect(() => {
     if (nextDeadline === null) {
       setCountdown("");
       return;
     }
 
-    // Convert BigInt to number if needed (Unix timestamp in seconds)
-    const deadlineTimestamp =
-      typeof nextDeadline === "bigint" ? Number(nextDeadline) : nextDeadline;
-
     const updateCountdown = () => {
-      const now = Math.floor(Date.now() / 1000); // Current time in seconds
-      const secondsRemaining = deadlineTimestamp - now;
+      const now = Math.floor(Date.now() / 1000);
+      const secondsRemaining = nextDeadline - now;
       setCountdown(formatCountdown(secondsRemaining));
     };
 
-    // Update immediately
     updateCountdown();
 
-    // Update every second
     const interval = setInterval(updateCountdown, 1000);
 
     return () => clearInterval(interval);
@@ -136,8 +114,9 @@ export default function ResourceRequestCard({
         </div>
         <div className="flex-shrink-0">
           <ContractStatusBadge
-            requestId={request.request_id}
-            escrowContractAddress={request.escrow_contract_address}
+            statusLabel={batchData?.statusLabel || "Loading..."}
+            hasStatus={batchData?.hasStatus || false}
+            loading={!batchData}
           />
         </div>
       </div>

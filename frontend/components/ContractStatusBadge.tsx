@@ -1,40 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { getContractStatus, type ContractStatusResult } from '@/lib/actions/get-contract-status';
-
 interface ContractStatusBadgeProps {
-  requestId: string;
-  escrowContractAddress: string | null;
+  statusLabel: string;
+  hasStatus: boolean;
+  loading?: boolean;
 }
 
 export default function ContractStatusBadge({
-  requestId,
-  escrowContractAddress,
+  statusLabel,
+  hasStatus,
+  loading = false,
 }: ContractStatusBadgeProps) {
-  const [statusResult, setStatusResult] = useState<ContractStatusResult | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchStatus() {
-      try {
-        setLoading(true);
-        const result = await getContractStatus(requestId, escrowContractAddress);
-        setStatusResult(result);
-      } catch (error) {
-        console.error('Failed to fetch contract status:', error);
-        setStatusResult({
-          status: null,
-          statusLabel: 'Error',
-          hasStatus: false,
-        });
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchStatus();
-  }, [requestId, escrowContractAddress]);
 
   if (loading) {
     return (
@@ -44,11 +20,6 @@ export default function ContractStatusBadge({
     );
   }
 
-  if (!statusResult) {
-    return null;
-  }
-
-  // Get color based on status label
   const getStatusColor = (label: string) => {
     const lowerLabel = label.toLowerCase();
 
@@ -68,16 +39,15 @@ export default function ContractStatusBadge({
       return 'bg-purple-100 text-purple-800 border-purple-200';
     }
 
-    // Fallback/error states
     return 'bg-gray-100 text-gray-600 border-gray-200';
   };
 
   return (
-    <div className={`text-xs px-2 py-1 rounded border ${getStatusColor(statusResult.statusLabel)}`}>
-      {statusResult.hasStatus ? (
-        <span className="font-medium">{statusResult.statusLabel}</span>
+    <div className={`text-xs px-2 py-1 rounded border ${getStatusColor(statusLabel)}`}>
+      {hasStatus ? (
+        <span className="font-medium">{statusLabel}</span>
       ) : (
-        <span className="italic">{statusResult.statusLabel}</span>
+        <span className="italic">{statusLabel}</span>
       )}
     </div>
   );
