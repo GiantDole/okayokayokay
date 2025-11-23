@@ -174,7 +174,7 @@ export default function DisputeActionButtons({
   }
 
   return (
-    <div className="bg-default/20 backdrop-blur-sm border border-contrast rounded-lg p-6 fixed left-1/2 -translate-x-1/2 bottom-5 items-center justify-center flex flex-col">
+    <div className="bg-default/20 backdrop-blur-sm border border-contrast rounded-lg p-6 sticky bottom-5 mx-auto items-center justify-center flex flex-col w-fit">
       <div className="flex flex-wrap gap-3">
         {canOpen && (
           <button

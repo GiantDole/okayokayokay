@@ -23,6 +23,7 @@ interface TransactionDetailClientProps {
   requestId: string;
   escrowContractAddress: string | null;
   amount?: bigint;
+  resourceUrl?: string | null;
 }
 
 interface ContractStatusData {
@@ -60,6 +61,7 @@ export default function TransactionDetailClient({
   requestId,
   escrowContractAddress,
   amount,
+  resourceUrl,
 }: TransactionDetailClientProps) {
   const [statusData, setStatusData] = useState<ContractStatusData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -70,6 +72,7 @@ export default function TransactionDetailClient({
   const [countdown, setCountdown] = useState<string>("");
   const [pollInterval, setPollInterval] = useState(1000);
   const [lastStatus, setLastStatus] = useState<number | null>(null);
+  const [fetchedAmount, setFetchedAmount] = useState<bigint | null>(null);
 
   useEffect(() => {
     if (!escrowContractAddress) {
@@ -229,6 +232,42 @@ export default function TransactionDetailClient({
     return () => clearInterval(interval);
   }, [nextDeadline]);
 
+  useEffect(() => {
+    if (amount || !resourceUrl) {
+      return;
+    }
+
+    const extractBaseUrl = (url: string): string | null => {
+      try {
+        const urlObj = new URL(url);
+        return `${urlObj.protocol}//${urlObj.host}`;
+      } catch {
+        return null;
+      }
+    };
+
+    const fetchResourcePrice = async () => {
+      const baseUrl = extractBaseUrl(resourceUrl);
+      if (!baseUrl) return;
+
+      try {
+        const response = await fetch(
+          `/api/resources?url=${encodeURIComponent(baseUrl)}`
+        );
+        if (response.ok) {
+          const data = await response.json();
+          if (data.resource?.price_per_request) {
+            setFetchedAmount(BigInt(Math.floor(data.resource.price_per_request * 1e6)));
+          }
+        }
+      } catch (error) {
+        console.error("[TransactionDetail] Error fetching resource price:", error);
+      }
+    };
+
+    fetchResourcePrice();
+  }, [amount, resourceUrl]);
+
   const handleSuccess = (action: string) => {
     console.log(
       "[TransactionDetail] Transaction confirmed, starting aggressive polling"
@@ -280,12 +319,14 @@ export default function TransactionDetailClient({
     );
   }
 
+  const displayAmount = amount || statusData?.amount || fetchedAmount;
+
   return (
     <div className="space-y-6">
-      {statusData && statusData.hasStatus && (amount || statusData.amount) && (
+      {statusData && statusData.hasStatus && displayAmount && (
         <MoneyFlowDiagram
           status={statusData.status}
-          amount={amount || statusData.amount || null}
+          amount={displayAmount}
           buyerRefunded={statusData.buyerRefunded}
         />
       )}
