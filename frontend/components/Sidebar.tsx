@@ -4,11 +4,12 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { WalletBadge } from "@/components/WalletBadge";
-import { FileIcon, Table2, Menu, X } from "lucide-react";
+import { FileIcon, Table2, Menu, X, Activity } from "lucide-react";
 
 const links = [
   { href: "/resources", label: "Resources", icon: Table2 },
   { href: "/disputes", label: "My Disputes", icon: FileIcon },
+  { href: "/requests", label: "My Requests", icon: Activity },
 ];
 
 export function MobileHeader() {

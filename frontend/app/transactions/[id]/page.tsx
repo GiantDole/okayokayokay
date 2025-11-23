@@ -59,7 +59,7 @@ export default async function TransactionDetailPage({ params }: PageProps) {
 
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2 text-primary">
-          Request Details
+          Transaction Details
         </h1>
         <p className="text-primary/70">
           View request and response details for this transaction
